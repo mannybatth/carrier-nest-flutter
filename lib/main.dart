@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:carrier_nest_flutter/rest/loads.dart';
+import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Carrier Nest'),
     );
   }
 }
@@ -37,7 +38,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _loadsFuture = Loads.getLoadsExpanded();
+    _loadsFuture = Loads.getLoadsExpanded(
+      expand: 'customer,shipper,receiver',
+      sort: Sort(key: 'refNum', order: 'desc'),
+      limit: 10,
+      offset: 0,
+      driverId: 'clkrhqiuk0000guvk5iku093f',
+    );
   }
 
   @override
@@ -59,9 +66,33 @@ class _MyHomePageState extends State<MyHomePage> {
               itemCount: loads.length,
               itemBuilder: (context, index) {
                 ExpandedLoad load = loads[index];
-                return ListTile(
-                  title: Text(load.refNum),
-                  subtitle: Text(load.status.toString()),
+                return Card(
+                  margin: const EdgeInsets.all(8.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(load.customer.name,
+                            style: const TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8.0),
+                        Text('Load/Order #: ${load.refNum}',
+                            style: const TextStyle(fontSize: 16)),
+                        const SizedBox(height: 8.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text(
+                                '${load.shipper.city}, ${load.shipper.state} to ${load.receiver.city}, ${load.receiver.state}'),
+                          ],
+                        ),
+                        const SizedBox(height: 8.0),
+                        Text(
+                            'Pickup Date: ${load.shipper.date.toString()}'), // Assuming there's a pickupDate attribute
+                      ],
+                    ),
+                  ),
                 );
               },
             );

@@ -63,8 +63,8 @@ class Load {
 
 class LoadStop {
   final String id;
-  final DateTime createdAt;
-  final String userId;
+  final DateTime? createdAt;
+  final String? userId;
   final LoadStopType type;
   final String name;
   final String street;
@@ -77,8 +77,8 @@ class LoadStop {
 
   LoadStop({
     required this.id,
-    required this.createdAt,
-    required this.userId,
+    this.createdAt,
+    this.userId,
     required this.type,
     required this.name,
     required this.street,
@@ -91,9 +91,11 @@ class LoadStop {
   });
   LoadStop.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = DateTime.parse(json['createdAt']),
-        userId = json['userId'],
-        type = LoadStopType.values[json['type']],
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        userId = json['userId'] as String?,
+        type = LoadStopType.values.byName(json['type']),
         name = json['name'],
         street = json['street'],
         city = json['city'],
@@ -106,8 +108,8 @@ class LoadStop {
 
 class Customer {
   final String id;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String name;
   final String? contactEmail;
   final String? billingEmail;
@@ -115,8 +117,8 @@ class Customer {
 
   Customer({
     required this.id,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.name,
     this.contactEmail,
     this.billingEmail,
@@ -124,8 +126,12 @@ class Customer {
   });
   Customer.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         name = json['name'],
         contactEmail = json['contactEmail'],
         billingEmail = json['billingEmail'],
@@ -134,46 +140,54 @@ class Customer {
 
 class Carrier {
   final String id;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String email;
   final String name;
 
   Carrier({
     required this.id,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.email,
     required this.name,
   });
   Carrier.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         email = json['email'],
         name = json['name'];
 }
 
 class Driver {
   final String id;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String name;
   final String? email;
   final String? phone;
 
   Driver({
     required this.id,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.name,
     this.email,
     this.phone,
   });
   Driver.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         name = json['name'],
         email = json['email'],
         phone = json['phone'];
@@ -181,8 +195,8 @@ class Driver {
 
 class LoadDocument {
   final String id;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String fileKey;
   final String fileUrl;
   final String fileName;
@@ -191,8 +205,8 @@ class LoadDocument {
 
   LoadDocument({
     required this.id,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.fileKey,
     required this.fileUrl,
     required this.fileName,
@@ -201,8 +215,12 @@ class LoadDocument {
   });
   LoadDocument.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         fileKey = json['fileKey'],
         fileUrl = json['fileUrl'],
         fileName = json['fileName'],
@@ -226,11 +244,11 @@ class LoadActivity {
 
 class Invoice {
   final String id;
-  final String userId;
-  final String carrierId;
-  final String loadId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String? userId;
+  final String? carrierId;
+  final String? loadId;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final int invoiceNum;
   final InvoiceStatus status;
   final double totalAmount;
@@ -241,11 +259,11 @@ class Invoice {
 
   Invoice({
     required this.id,
-    required this.userId,
-    required this.carrierId,
-    required this.loadId,
-    required this.createdAt,
-    required this.updatedAt,
+    this.userId,
+    this.carrierId,
+    this.loadId,
+    this.createdAt,
+    this.updatedAt,
     required this.invoiceNum,
     required this.status,
     required this.totalAmount,
@@ -256,13 +274,17 @@ class Invoice {
   });
   Invoice.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        userId = json['userId'],
-        carrierId = json['carrierId'],
-        loadId = json['loadId'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        userId = json['userId'] as String?,
+        carrierId = json['carrierId'] as String?,
+        loadId = json['loadId'] as String?,
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         invoiceNum = json['invoiceNum'],
-        status = InvoiceStatus.values[json['status']],
+        status = InvoiceStatus.values.byName(json['status']),
         totalAmount = json['totalAmount'].toDouble(),
         remainingAmount = json['remainingAmount'].toDouble(),
         invoicedAt = DateTime.parse(json['invoicedAt']),
@@ -275,8 +297,8 @@ class ExpandedLoad {
   final String userId;
   final String customerId;
   final String carrierId;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
   final String refNum;
   final String shipperId;
   final String receiverId;
@@ -292,7 +314,7 @@ class ExpandedLoad {
   final List<LoadStop> stops;
   final List<Driver> drivers;
   final List<LoadDocument> loadDocuments;
-  final LoadDocument rateconDocument;
+  final LoadDocument? rateconDocument;
   final List<LoadDocument> podDocuments;
 
   ExpandedLoad({
@@ -300,8 +322,8 @@ class ExpandedLoad {
     required this.userId,
     required this.customerId,
     required this.carrierId,
-    required this.createdAt,
-    required this.updatedAt,
+    this.createdAt,
+    this.updatedAt,
     required this.refNum,
     required this.shipperId,
     required this.receiverId,
@@ -317,7 +339,7 @@ class ExpandedLoad {
     required this.stops,
     required this.drivers,
     required this.loadDocuments,
-    required this.rateconDocument,
+    this.rateconDocument,
     required this.podDocuments,
   });
   ExpandedLoad.fromJson(Map<String, dynamic> json)
@@ -325,8 +347,12 @@ class ExpandedLoad {
         userId = json['userId'],
         customerId = json['customerId'],
         carrierId = json['carrierId'],
-        createdAt = DateTime.parse(json['createdAt']),
-        updatedAt = DateTime.parse(json['updatedAt']),
+        createdAt = json['createdAt'] != null
+            ? DateTime.parse(json['createdAt'])
+            : null,
+        updatedAt = json['updatedAt'] != null
+            ? DateTime.parse(json['updatedAt'])
+            : null,
         refNum = json['refNum'],
         shipperId = json['shipperId'],
         receiverId = json['receiverId'],
@@ -334,23 +360,25 @@ class ExpandedLoad {
         routeEncoded = json['routeEncoded'],
         routeDistance = json['routeDistance'].toDouble(),
         routeDuration = json['routeDuration'].toDouble(),
-        status = LoadStatus.values[json['status']],
+        status = LoadStatus.values.byName(json['status']),
         customer = Customer.fromJson(json['customer']),
         invoice =
             json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null,
         shipper = LoadStop.fromJson(json['shipper']),
         receiver = LoadStop.fromJson(json['receiver']),
-        stops = (json['stops'] as List)
+        stops = (json['stops'] as List? ?? [])
             .map((item) => LoadStop.fromJson(item))
             .toList(),
-        drivers = (json['drivers'] as List)
+        drivers = (json['drivers'] as List? ?? [])
             .map((item) => Driver.fromJson(item))
             .toList(),
-        loadDocuments = (json['loadDocuments'] as List)
+        loadDocuments = (json['loadDocuments'] as List? ?? [])
             .map((item) => LoadDocument.fromJson(item))
             .toList(),
-        rateconDocument = LoadDocument.fromJson(json['rateconDocument']),
-        podDocuments = (json['podDocuments'] as List)
+        rateconDocument = json['rateconDocument'] != null
+            ? LoadDocument.fromJson(json['rateconDocument'])
+            : null,
+        podDocuments = (json['podDocuments'] as List? ?? [])
             .map((item) => LoadDocument.fromJson(item))
             .toList();
 }

@@ -28,6 +28,9 @@ class Loads {
     final Uri uri = Uri.parse('$apiUrl/loads').replace(queryParameters: params);
     final http.Response response = await http.get(uri);
 
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       final List<dynamic> errors =
@@ -37,12 +40,12 @@ class Loads {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final List<ExpandedLoad> loads = (jsonResponse['data'] as List)
+      final List<ExpandedLoad> loads = (jsonResponse['data']['loads'] as List)
           .map((item) => ExpandedLoad.fromJson(item))
           .toList();
 
       final PaginationMetadata metadata =
-          PaginationMetadata.fromJson(jsonResponse['metadata']);
+          PaginationMetadata.fromJson(jsonResponse['data']['metadata']);
 
       return {'loads': loads, 'metadata': metadata};
     } else {
