@@ -1,5 +1,3 @@
-// Dart file. Contains code that loads data from the server.
-
 import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'dart:convert';
@@ -33,14 +31,18 @@ class Loads {
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       final List<dynamic> errors =
-          jsonResponse['errors']; // Assuming errors are a list
+          jsonResponse['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final List<ExpandedLoad> loads = [];
-      final PaginationMetadata metadata = PaginationMetadata();
+      final List<ExpandedLoad> loads = (jsonResponse['data'] as List)
+          .map((item) => ExpandedLoad.fromJson(item))
+          .toList();
+
+      final PaginationMetadata metadata =
+          PaginationMetadata.fromJson(jsonResponse['metadata']);
 
       return {'loads': loads, 'metadata': metadata};
     } else {
@@ -67,13 +69,13 @@ class Loads {
     if (response.statusCode == 200) {
       final Map<String, dynamic> jsonResponse = jsonDecode(response.body);
       final List<dynamic> errors =
-          jsonResponse['errors']; // Assuming errors are a list
+          jsonResponse['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final ExpandedLoad load = ExpandedLoad();
+      final ExpandedLoad load = ExpandedLoad.fromJson(jsonResponse['data']);
       return load;
     } else {
       throw Exception('Failed to load data');

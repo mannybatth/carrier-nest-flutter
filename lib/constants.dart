@@ -21,6 +21,16 @@ class PaginationMetadata {
     this.prev,
     this.next,
   });
+  PaginationMetadata.fromJson(Map<String, dynamic> json)
+      : total = json['total'],
+        currentOffset = json['currentOffset'],
+        currentLimit = json['currentLimit'],
+        prev = json['prev'] != null
+            ? PaginationPointer.fromJson(json['prev'])
+            : null,
+        next = json['next'] != null
+            ? PaginationPointer.fromJson(json['next'])
+            : null;
 }
 
 class PaginationPointer {
@@ -31,6 +41,9 @@ class PaginationPointer {
     required this.offset,
     required this.limit,
   });
+  PaginationPointer.fromJson(Map<String, dynamic> json)
+      : offset = json['offset'],
+        limit = json['limit'];
 }
 
 class Sort {
