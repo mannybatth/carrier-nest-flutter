@@ -78,7 +78,8 @@ class Loads {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final ExpandedLoad load = ExpandedLoad.fromJson(jsonResponse['data']);
+      final ExpandedLoad load =
+          ExpandedLoad.fromJson(jsonResponse['data']['load']);
       return load;
     } else {
       throw Exception('Failed to load data');
