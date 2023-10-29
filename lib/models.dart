@@ -253,8 +253,8 @@ class Invoice {
   final InvoiceStatus status;
   final double totalAmount;
   final double remainingAmount;
-  final DateTime invoicedAt;
-  final DateTime dueDate;
+  final DateTime? invoicedAt;
+  final DateTime? dueDate;
   final int dueNetDays;
 
   Invoice({
@@ -285,10 +285,18 @@ class Invoice {
             : null,
         invoiceNum = json['invoiceNum'],
         status = InvoiceStatus.values.byName(json['status']),
-        totalAmount = json['totalAmount'].toDouble(),
-        remainingAmount = json['remainingAmount'].toDouble(),
-        invoicedAt = DateTime.parse(json['invoicedAt']),
-        dueDate = DateTime.parse(json['dueDate']),
+        totalAmount = json['totalAmount'] != null
+            ? double.parse(json['totalAmount'].toString())
+            : 0.0,
+        remainingAmount = json['remainingAmount'] != null
+            ? double.parse(json['remainingAmount'].toString())
+            : 0.0,
+        invoicedAt = json['invoicedAt'] != null
+            ? DateTime.parse(json['invoicedAt'])
+            : null, // Adjusted here
+        dueDate = json['dueDate'] != null
+            ? DateTime.parse(json['dueDate'])
+            : null, // Adjusted here
         dueNetDays = json['dueNetDays'];
 }
 
@@ -356,10 +364,15 @@ class ExpandedLoad {
         refNum = json['refNum'],
         shipperId = json['shipperId'],
         receiverId = json['receiverId'],
-        rate = json['rate'].toDouble(),
+        rate =
+            json['rate'] != null ? double.parse(json['rate'].toString()) : 0.0,
         routeEncoded = json['routeEncoded'],
-        routeDistance = json['routeDistance'].toDouble(),
-        routeDuration = json['routeDuration'].toDouble(),
+        routeDistance = json['routeDistance'] != null
+            ? double.parse(json['routeDistance'].toString())
+            : 0.0,
+        routeDuration = json['routeDuration'] != null
+            ? double.parse(json['routeDuration'].toString())
+            : 0.0,
         status = LoadStatus.values.byName(json['status']),
         customer = Customer.fromJson(json['customer']),
         invoice =
