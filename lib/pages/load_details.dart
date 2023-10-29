@@ -17,8 +17,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   @override
   void initState() {
     super.initState();
-    _loadFuture =
-        Loads.getLoadById(widget.loadId, driverId: 'clkrhqiuk0000guvk5iku093f');
+    _loadFuture = Loads.getLoadById(widget.loadId);
   }
 
   @override

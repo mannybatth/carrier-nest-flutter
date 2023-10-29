@@ -1,6 +1,7 @@
 import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:carrier_nest_flutter/rest/+dio_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Loads {
   static Future<Map<String, dynamic>> getLoadsExpanded({
@@ -49,12 +50,12 @@ class Loads {
     }
   }
 
-  static Future<ExpandedLoad> getLoadById(String id,
-      {String? driverId, bool expandCarrier = false}) async {
-    String expand = 'customer,shipper,receiver,stops,invoice,driver,documents';
-    if (expandCarrier) {
-      expand += ',carrier';
-    }
+  static Future<ExpandedLoad> getLoadById(String id) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? driverId = prefs.getString("driverId");
+
+    String expand =
+        'customer,shipper,receiver,stops,invoice,driver,documents,carrier';
 
     final Map<String, String> params = {
       'expand': expand,
