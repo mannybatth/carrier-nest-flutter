@@ -5,6 +5,7 @@ import 'package:carrier_nest_flutter/rest/loads.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:carrier_nest_flutter/helpers/helpers.dart';
 
 class LoadDetailsPage extends StatefulWidget {
   final String loadId;
@@ -81,7 +82,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Load Details'),
+        title: Text(_load!.customer.name),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -96,13 +97,13 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       padding: const EdgeInsets.all(16.0),
       children: [
         _infoRow('Ref Num', _load!.refNum),
-        _infoRow('Rate', '${_load!.rate}'),
-        const Divider(color: Colors.grey),
-        _infoRow('Customer', _load!.customer.name),
+        // const Divider(color: Colors.grey),
+        // _infoRow('Customer', _load!.customer.name),
         _infoRow('Shipper', _load!.shipper.name),
         _infoRow('Receiver', _load!.receiver.name),
-        _infoRow('Route Distance', '${_load!.routeDistance} km'),
-        _infoRow('Route Duration', '${_load!.routeDuration} hrs'),
+        _infoRow('Route Distance',
+            '${metersToMiles(_load!.routeDistance).toStringAsFixed(0)} miles'),
+        _infoRow('Route Duration', secondsToReadable(_load!.routeDuration)),
         ..._load!.loadDocuments.map((doc) => _documentRow(doc)),
         _buildDirectionsButton(),
         _buildFilePickerButton(),

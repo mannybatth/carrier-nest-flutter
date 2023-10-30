@@ -313,7 +313,6 @@ class ExpandedLoad {
   final String refNum;
   final String shipperId;
   final String receiverId;
-  final double rate;
   final String routeEncoded;
   final double routeDistance;
   final double routeDuration;
@@ -338,7 +337,6 @@ class ExpandedLoad {
     required this.refNum,
     required this.shipperId,
     required this.receiverId,
-    required this.rate,
     required this.routeEncoded,
     required this.routeDistance,
     required this.routeDuration,
@@ -367,8 +365,6 @@ class ExpandedLoad {
         refNum = json['refNum'],
         shipperId = json['shipperId'],
         receiverId = json['receiverId'],
-        rate =
-            json['rate'] != null ? double.parse(json['rate'].toString()) : 0.0,
         routeEncoded = json['routeEncoded'],
         routeDistance = json['routeDistance'] != null
             ? double.parse(json['routeDistance'].toString())
