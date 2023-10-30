@@ -80,22 +80,36 @@ class _LoadsViewState extends State<LoadsView> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text(load.customer.name,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 8.0),
-                        Text('Load/Order #: ${load.refNum}',
-                            style: const TextStyle(fontSize: 16)),
-                        const SizedBox(height: 8.0),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
                             Text(
-                                '${load.shipper.city}, ${load.shipper.state} to ${load.receiver.city}, ${load.receiver.state}'),
+                              load.refNum,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 8.0),
-                        Text('Pickup Date: ${load.shipper.date.toString()}'),
+                        const SizedBox(height: 10),
+                        Text(
+                          load.customer.name,
+                          style:
+                              TextStyle(color: Colors.grey[600], fontSize: 16),
+                        ),
+                        Divider(thickness: 1, color: Colors.grey[400]),
+                        const SizedBox(height: 10),
+                        RowItem(
+                          icon: Icons.location_on,
+                          title: '${load.shipper.city}, ${load.shipper.state}',
+                          subtitle:
+                              '${load.receiver.city}, ${load.receiver.state}',
+                        ),
+                        const SizedBox(height: 10),
+                        RowItem(
+                          icon: Icons.event,
+                          title: 'Pickup Date',
+                          subtitle: '${load.shipper.date.toString()}',
+                        ),
                       ],
                     ),
                   ),
@@ -107,6 +121,40 @@ class _LoadsViewState extends State<LoadsView> {
           return const Center(child: Text('No loads found'));
         }
       },
+    );
+  }
+}
+
+class RowItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  RowItem({required this.icon, required this.title, required this.subtitle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Icon(icon, color: Colors.blue[700]),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
+              Text(
+                subtitle,
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

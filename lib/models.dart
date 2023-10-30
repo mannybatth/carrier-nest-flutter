@@ -195,6 +195,7 @@ class Driver {
 
 class LoadDocument {
   final String id;
+  final String? driverId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
   final String fileKey;
@@ -205,6 +206,7 @@ class LoadDocument {
 
   LoadDocument({
     required this.id,
+    required this.driverId,
     this.createdAt,
     this.updatedAt,
     required this.fileKey,
@@ -215,6 +217,7 @@ class LoadDocument {
   });
   LoadDocument.fromJson(Map<String, dynamic> json)
       : id = json['id'],
+        driverId = json['driverId'],
         createdAt = json['createdAt'] != null
             ? DateTime.parse(json['createdAt'])
             : null,

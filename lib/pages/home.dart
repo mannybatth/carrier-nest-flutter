@@ -34,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,
         currentIndex: _currentIndex,
+        fixedColor: Colors.blue[700],
         items: [
           BottomNavigationBarItem(
             icon: new Icon(Icons.local_shipping),

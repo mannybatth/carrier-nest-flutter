@@ -1,4 +1,5 @@
-const apiUrl = 'http://localhost:3000/api';
+// const apiUrl = 'http://localhost:3000/api';
+const apiUrl = 'http://192.168.86.33:3000/api';
 
 class JSONResponse<T> {
   final T data;
