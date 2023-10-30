@@ -82,7 +82,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_load!.customer.name),
+        title: Text(_load?.customer.name ?? ''),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
