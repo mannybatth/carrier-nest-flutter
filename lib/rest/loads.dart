@@ -81,4 +81,40 @@ class Loads {
       throw Exception('Failed to load data');
     }
   }
+
+  static Future<Load> updateLoadStatus({
+    required String loadId,
+    required LoadStatus status,
+    String? driverId,
+    double? longitude,
+    double? latitude,
+  }) async {
+    final Map<String, dynamic> body = {
+      'status': status
+          .toString()
+          .split('.')
+          .last, // Getting the enum value as a string
+      if (driverId != null) 'driverId': driverId,
+      if (longitude != null) 'longitude': longitude,
+      if (latitude != null) 'latitude': latitude,
+    };
+
+    final response = await DioClient().dio.patch<Map<String, dynamic>>(
+          '$apiUrl/loads/$loadId/status',
+          data: body,
+        );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> errors = response.data?['errors'] ?? [];
+
+      if (errors.isNotEmpty) {
+        throw Exception(errors.map((e) => e.toString()).join(', '));
+      }
+
+      final Load load = Load.fromJson(response.data?['data']['load']);
+      return load;
+    } else {
+      throw Exception('Failed to update load status');
+    }
+  }
 }

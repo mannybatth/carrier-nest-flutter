@@ -27,6 +27,24 @@ enum LoadActivityAction {
   UNASSIGN_DRIVER,
 }
 
+enum UILoadStatus {
+  booked, // load created but not yet set as in progress
+  inProgress, // load marked as in progress
+  delivered, // load delivered to last drop off and awaiting POD docs
+  podReady, // POD is uploaded by the driver
+  invoiced, // invoice is created
+  partiallyPaid, // incomplete full payment
+  paid, // full payment received for invoice
+  overdue, // invoice past due date
+}
+
+enum UIInvoiceStatus {
+  NOT_PAID,
+  PARTIALLY_PAID,
+  OVERDUE,
+  PAID,
+}
+
 class Load {
   final String id;
   final String userId;
@@ -59,6 +77,25 @@ class Load {
     this.routeDuration,
     required this.status,
   });
+  Load.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        userId = json['userId'],
+        customerId = json['customerId'] as String?,
+        carrierId = json['carrierId'],
+        createdAt = DateTime.parse(json['createdAt']),
+        updatedAt = DateTime.parse(json['updatedAt']),
+        refNum = json['refNum'],
+        shipperId = json['shipperId'],
+        receiverId = json['receiverId'],
+        rate = double.parse(json['rate'].toString()),
+        routeEncoded = json['routeEncoded'] as String?,
+        routeDistance = json['routeDistance'] != null
+            ? double.parse(json['routeDistance'].toString())
+            : null,
+        routeDuration = json['routeDuration'] != null
+            ? double.parse(json['routeDuration'].toString())
+            : null,
+        status = LoadStatus.values.byName(json['status']);
 }
 
 class LoadStop {
@@ -74,6 +111,8 @@ class LoadStop {
   final String country;
   final DateTime date;
   final String time;
+  final double? latitude;
+  final double? longitude;
 
   LoadStop({
     required this.id,
@@ -88,13 +127,16 @@ class LoadStop {
     required this.country,
     required this.date,
     required this.time,
+    this.latitude,
+    this.longitude,
   });
+
   LoadStop.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         createdAt = json['createdAt'] != null
             ? DateTime.parse(json['createdAt'])
             : null,
-        userId = json['userId'] as String?,
+        userId = json['userId'],
         type = LoadStopType.values.byName(json['type']),
         name = json['name'],
         street = json['street'],
@@ -103,7 +145,9 @@ class LoadStop {
         zip = json['zip'],
         country = json['country'],
         date = DateTime.parse(json['date']),
-        time = json['time'];
+        time = json['time'],
+        latitude = json['latitude']?.toDouble(),
+        longitude = json['longitude']?.toDouble();
 }
 
 class Customer {
@@ -236,13 +280,25 @@ class LoadActivity {
   final DateTime createdAt;
   final String loadId;
   final LoadActivityAction action;
+  final double? latitude;
+  final double? longitude;
 
   LoadActivity({
     required this.id,
     required this.createdAt,
     required this.loadId,
     required this.action,
+    this.latitude,
+    this.longitude,
   });
+
+  LoadActivity.fromJson(Map<String, dynamic> json)
+      : id = json['id'],
+        createdAt = DateTime.parse(json['createdAt']),
+        loadId = json['loadId'],
+        action = LoadActivityAction.values.byName(json['action']),
+        latitude = json['latitude']?.toDouble(),
+        longitude = json['longitude']?.toDouble();
 }
 
 class Invoice {

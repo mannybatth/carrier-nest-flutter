@@ -1,3 +1,4 @@
+import 'package:carrier_nest_flutter/helpers/map_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +7,8 @@ import 'package:carrier_nest_flutter/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:carrier_nest_flutter/helpers/helpers.dart';
+import 'package:carrier_nest_flutter/helpers/load_utils.dart';
+import 'package:carrier_nest_flutter/helpers/location_utils.dart';
 
 class LoadDetailsPage extends StatefulWidget {
   final String loadId;
@@ -50,8 +53,12 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     }
   }
 
+  void _openAddressInMaps(String address) {
+    MapUtils.openAddress(address);
+  }
+
   void _openRouteInGoogleMaps() {
-    // Implement logic to open route in Google Maps
+    MapUtils.openRouteInGoogleMaps(_load!);
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -78,6 +85,43 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     }
   }
 
+  Future<void> _updateLoadStatus(LoadStatus status) async {
+    if (_load == null || _driverId == null) return;
+
+    try {
+      var locationData = await LocationUtils.getDeviceLocation();
+
+      if (locationData != null) {
+        await Loads.updateLoadStatus(
+          loadId: widget.loadId,
+          status: status,
+          driverId: _driverId,
+          longitude: locationData.longitude,
+          latitude: locationData.latitude,
+        );
+      } else {
+        await Loads.updateLoadStatus(
+          loadId: widget.loadId,
+          status: status,
+          driverId: _driverId,
+        );
+      }
+
+      _fetchLoadDetails();
+    } catch (e) {
+      // Handle error
+      // For example: Show a dialog or a snackbar with the error message
+    }
+  }
+
+  void _beginWork() {
+    _updateLoadStatus(LoadStatus.IN_PROGRESS);
+  }
+
+  void _completeWork() {
+    _updateLoadStatus(LoadStatus.DELIVERED);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,7 +142,6 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       children: [
         _infoRow('Ref Num', _load!.refNum),
         // const Divider(color: Colors.grey),
-        // _infoRow('Customer', _load!.customer.name),
         _infoRow('Shipper', _load!.shipper.name),
         _infoRow('Receiver', _load!.receiver.name),
         _infoRow('Route Distance',
@@ -106,6 +149,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoRow('Route Duration', secondsToReadable(_load!.routeDuration)),
         ..._load!.loadDocuments.map((doc) => _documentRow(doc)),
         _buildDirectionsButton(),
+        _buildBeginWorkButton(),
+        _buildCompleteWorkButton(),
         _buildFilePickerButton(),
         // Add more UI elements as needed
       ],
@@ -150,12 +195,39 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     );
   }
 
+  Widget _buildBeginWorkButton() {
+    UILoadStatus currentStatus = loadStatus(_load!);
+    if (currentStatus == UILoadStatus.booked) {
+      return ElevatedButton(
+        onPressed: _beginWork,
+        child: const Text('Begin Work'),
+      );
+    }
+    return Container(); // Return an empty container if the condition is not met
+  }
+
+  Widget _buildCompleteWorkButton() {
+    UILoadStatus currentStatus = loadStatus(_load!);
+    if (currentStatus == UILoadStatus.inProgress) {
+      return ElevatedButton(
+        onPressed: _completeWork,
+        child: const Text('Complete Work'),
+      );
+    }
+    return Container(); // Return an empty container if the condition is not met
+  }
+
   Widget _buildFilePickerButton() {
-    return ElevatedButton.icon(
-      onPressed: () => _showPickOptionsDialog(context),
-      icon: const Icon(Icons.upload_file),
-      label: const Text('Upload Document'),
-    );
+    UILoadStatus currentStatus = loadStatus(_load!);
+    if (currentStatus == UILoadStatus.delivered ||
+        currentStatus == UILoadStatus.podReady) {
+      return ElevatedButton.icon(
+        onPressed: () => _showPickOptionsDialog(context),
+        icon: const Icon(Icons.upload_file),
+        label: const Text('Upload Document'),
+      );
+    }
+    return Container(); // Return an empty container if the condition is not met
   }
 
   Future<void> _showPickOptionsDialog(BuildContext context) async {
