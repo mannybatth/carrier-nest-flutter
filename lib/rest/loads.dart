@@ -43,7 +43,6 @@ class Loads {
       final PaginationMetadata metadata =
           PaginationMetadata.fromJson(response.data?['data']['metadata']);
 
-      print('Loads: $loads');
       return {'loads': loads, 'metadata': metadata};
     } else {
       throw Exception('Failed to load data');

@@ -8,6 +8,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carrier_nest_flutter/helpers/helpers.dart';
 import 'package:carrier_nest_flutter/helpers/load_utils.dart';
 import 'package:carrier_nest_flutter/helpers/location_utils.dart';
+import 'package:flutter/services.dart';
+
+enum MenuOptions { notInProgress, notDelivered }
 
 class LoadDetailsPage extends StatefulWidget {
   final String loadId;
@@ -22,6 +25,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   bool _isLoading = true;
   late ExpandedLoad _load;
   late String _driverId;
+  bool _dropOffDatePassed = false;
   String? _errorMessage;
 
   @override
@@ -43,6 +47,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       ExpandedLoad load = await Loads.getLoadById(widget.loadId);
       setState(() {
         _load = load;
+        _dropOffDatePassed = isDate24HrInThePast(load.receiver.date);
         _isLoading = false;
         _errorMessage = null;
       });
@@ -113,12 +118,27 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     }
   }
 
+  void _stopWork() {
+    _updateLoadStatus(LoadStatus.CREATED);
+  }
+
   void _beginWork() {
     _updateLoadStatus(LoadStatus.IN_PROGRESS);
   }
 
   void _completeWork() {
     _updateLoadStatus(LoadStatus.DELIVERED);
+  }
+
+  void _handleMenuOption(MenuOptions option) {
+    switch (option) {
+      case MenuOptions.notInProgress:
+        _stopWork();
+        break;
+      case MenuOptions.notDelivered:
+        _beginWork();
+        break;
+    }
   }
 
   @override
@@ -139,35 +159,224 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
 
   Widget _buildLoadDetails() {
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.only(bottom: 64.0, top: 16.0),
       children: [
-        _infoRow('Ref Num', _load.refNum),
-        // const Divider(color: Colors.grey),
-        _infoRow('Shipper', _load.shipper.name),
-        _infoRow('Receiver', _load.receiver.name),
-        _infoRow('Route Distance',
-            '${metersToMiles(_load.routeDistance).toStringAsFixed(0)} miles'),
-        _infoRow('Route Duration', secondsToReadable(_load.routeDuration)),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8.0, left: 16.0, right: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildBeginWorkButton(),
+              _buildCompleteWorkButton(),
+              _buildFilePickerButton(),
+              const SizedBox(width: 18),
+              _buildMenuButton(),
+            ],
+          ),
+        ),
+        _infoTile(label: 'Ref Num', value: _load.refNum),
+        _infoTile(
+            label: 'Shipper',
+            value: _formatLoadStopAddress(_load.shipper),
+            onTap: () {
+              _showAddressOptionsDialog(_formatLoadStopAddress(_load.shipper));
+            }),
+        _expandableAdditionalInfoTile('Additional Info', _load.shipper),
+        Divider(thickness: 1, color: Colors.grey[300]),
+        ..._load.stops.asMap().entries.map((entry) {
+          int index = entry.key;
+          LoadStop stop = entry.value;
+          return Column(
+            children: [
+              _infoTile(
+                  label: 'Stop #${index + 1}',
+                  value: _formatLoadStopAddress(stop),
+                  onTap: () {
+                    _showAddressOptionsDialog(_formatLoadStopAddress(stop));
+                  }),
+              _expandableAdditionalInfoTile('Additional Info', stop),
+              Divider(thickness: 1, color: Colors.grey[300]),
+            ],
+          );
+        }).toList(),
+        _infoTile(
+            label: 'Receiver',
+            value: _formatLoadStopAddress(_load.receiver),
+            onTap: () {
+              _showAddressOptionsDialog(_formatLoadStopAddress(_load.receiver));
+            }),
+        _expandableAdditionalInfoTile('Additional Info', _load.receiver),
+        Divider(thickness: 1, color: Colors.grey[300]),
+        _infoTile(
+            label: 'Route Distance',
+            value:
+                '${metersToMiles(_load.routeDistance).toStringAsFixed(0)} miles'),
+        _infoTile(
+            label: 'Route Duration',
+            value: secondsToReadable(_load.routeDuration)),
         ..._load.loadDocuments.map((doc) => _documentRow(doc)),
-        _buildDirectionsButton(),
-        _buildBeginWorkButton(),
-        _buildCompleteWorkButton(),
-        _buildFilePickerButton(),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+          child: _buildDirectionsButton(),
+        ),
         // Add more UI elements as needed
       ],
     );
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          Text(value),
-        ],
+  Widget _expandableAdditionalInfoTile(String label, LoadStop stop) {
+    // Additional details as a list of map objects
+    List<Map<String, String>> additionalDetails = [];
+    if (stop.poNumbers!.isNotEmpty) {
+      additionalDetails.add({"label": "PO #'s", "value": stop.poNumbers!});
+    }
+
+    // Check the type of the LoadStop and set the label accordingly
+    String pickUpLabel =
+        stop.type == LoadStopType.RECEIVER ? "Del #'s" : "PU #'s";
+    if (stop.pickUpNumbers!.isNotEmpty) {
+      additionalDetails
+          .add({"label": pickUpLabel, "value": stop.pickUpNumbers!});
+    }
+
+    if (stop.referenceNumbers!.isNotEmpty) {
+      additionalDetails
+          .add({"label": "Ref #'s", "value": stop.referenceNumbers!});
+    }
+
+    if (additionalDetails.isNotEmpty) {
+      return Theme(
+        data: Theme.of(context).copyWith(
+          dividerColor: Colors.transparent, // Set divider color to transparent
+        ),
+        child: ExpansionTile(
+          title: Text(label,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          children: additionalDetails.map((detail) {
+            return _customListTile(detail, () {
+              _showDetailOptionsDialog(detail['value']!);
+            });
+          }).toList(),
+        ),
+      );
+    } else {
+      return Container(); // Return an empty container if there are no additional details
+    }
+  }
+
+  // New method to show the bottom sheet modal for details
+  void _showDetailOptionsDialog(String detail) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext bc) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text('Copy to Clipboard'),
+                onTap: () {
+                  Clipboard.setData(
+                      ClipboardData(text: detail)); // Copy to clipboard
+                  Navigator.of(context).pop(); // Close the modal
+                  const snackBar = SnackBar(
+                    content: Text('Copied to Clipboard'),
+                  );
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(snackBar); // Show confirmation
+                },
+              ),
+              // Add more options if needed
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Update _customListTile method
+  Widget _customListTile(Map<String, String> detail, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: '${detail['label']!}: ',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+                TextSpan(
+                  text: detail['value']!,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
+    );
+  }
+
+  String _formatLoadStopAddress(LoadStop stop) {
+    return "${stop.name}\n${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
+  }
+
+  // Method to show the bottom sheet modal
+  void _showAddressOptionsDialog(String address) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext bc) {
+        return SafeArea(
+          child: Wrap(
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.copy),
+                title: const Text('Copy Address'),
+                onTap: () {
+                  Clipboard.setData(
+                      ClipboardData(text: address)); // Copy to clipboard
+                  Navigator.of(context).pop(); // Close the modal
+                  const snackBar = SnackBar(
+                    content: Text('Copied to Clipboard'),
+                  );
+                  ScaffoldMessenger.of(context)
+                      .showSnackBar(snackBar); // Show confirmation
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.directions),
+                title: const Text('Get Directions'),
+                onTap: () {
+                  _openAddressInMaps(address); // Open address in maps
+                  Navigator.of(context).pop(); // Close the modal
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // Update _infoTile method
+  Widget _infoTile(
+      {required String label, required String value, VoidCallback? onTap}) {
+    return ListTile(
+      title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: Text(value),
+      onTap: onTap ?? () {},
     );
   }
 
@@ -192,16 +401,26 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     return ElevatedButton.icon(
       onPressed: _openRouteInGoogleMaps,
       icon: const Icon(Icons.map),
-      label: const Text('Get Directions'),
+      label: const Text('Get Route Directions'),
     );
   }
 
   Widget _buildBeginWorkButton() {
     UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.booked) {
-      return ElevatedButton(
-        onPressed: _beginWork,
-        child: const Text('Begin Work'),
+      return Expanded(
+        child: ElevatedButton(
+          onPressed: _beginWork,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment
+                .spaceBetween, // This will stretch the button content
+            children: [
+              Text(''), // Empty text widget to create space
+              Text('Begin Work'),
+              Text(''), // Empty text widget to create space
+            ],
+          ),
+        ),
       );
     }
     return Container(); // Return an empty container if the condition is not met
@@ -210,9 +429,19 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   Widget _buildCompleteWorkButton() {
     UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.inProgress) {
-      return ElevatedButton(
-        onPressed: _completeWork,
-        child: const Text('Complete Work'),
+      return Expanded(
+        child: ElevatedButton(
+          onPressed: _completeWork,
+          child: const Row(
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Stretch the button content
+            children: [
+              Text(''), // Empty text widget to create space
+              Text('Complete Work'),
+              Text(''), // Empty text widget to create space
+            ],
+          ),
+        ),
       );
     }
     return Container(); // Return an empty container if the condition is not met
@@ -222,10 +451,20 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.delivered ||
         currentStatus == UILoadStatus.podReady) {
-      return ElevatedButton.icon(
-        onPressed: () => _showPickOptionsDialog(context),
-        icon: const Icon(Icons.upload_file),
-        label: const Text('Upload Document'),
+      return Expanded(
+        child: ElevatedButton.icon(
+          onPressed: () => _showPickOptionsDialog(context),
+          icon: const Icon(Icons.upload_file),
+          label: const Row(
+            mainAxisAlignment:
+                MainAxisAlignment.spaceBetween, // Stretch the button content
+            children: [
+              Text(''), // Empty text widget to create space
+              Text('Upload Document'),
+              Text(''), // Empty text widget to create space
+            ],
+          ),
+        ),
       );
     }
     return Container(); // Return an empty container if the condition is not met
@@ -266,6 +505,42 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         );
       },
     );
+  }
+
+  Widget _buildMenuButton() {
+    UILoadStatus currentStatus = loadStatus(_load);
+    if (!_dropOffDatePassed &&
+        (currentStatus == UILoadStatus.inProgress ||
+            currentStatus == UILoadStatus.delivered)) {
+      return PopupMenuButton<MenuOptions>(
+        onSelected: _handleMenuOption,
+        itemBuilder: (BuildContext context) {
+          List<PopupMenuEntry<MenuOptions>> menuItems = [];
+          UILoadStatus currentStatus = loadStatus(_load);
+
+          if (currentStatus == UILoadStatus.inProgress) {
+            menuItems.add(
+              const PopupMenuItem<MenuOptions>(
+                value: MenuOptions.notInProgress,
+                child: Text('Change to Not In Progress'),
+              ),
+            );
+          }
+          if (currentStatus == UILoadStatus.delivered) {
+            menuItems.add(
+              const PopupMenuItem<MenuOptions>(
+                value: MenuOptions.notDelivered,
+                child: Text('Change to Not Delivered'),
+              ),
+            );
+          }
+
+          return menuItems;
+        },
+      );
+    } else {
+      return Container(); // Return an empty container if the condition is not met
+    }
   }
 
   Widget _buildErrorView() {

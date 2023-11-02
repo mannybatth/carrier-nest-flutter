@@ -113,6 +113,9 @@ class LoadStop {
   final String time;
   final double? latitude;
   final double? longitude;
+  final String? poNumbers;
+  final String? pickUpNumbers;
+  final String? referenceNumbers;
 
   LoadStop({
     required this.id,
@@ -129,6 +132,9 @@ class LoadStop {
     required this.time,
     this.latitude,
     this.longitude,
+    this.poNumbers,
+    this.pickUpNumbers,
+    this.referenceNumbers,
   });
 
   LoadStop.fromJson(Map<String, dynamic> json)
@@ -147,7 +153,10 @@ class LoadStop {
         date = DateTime.parse(json['date']),
         time = json['time'],
         latitude = json['latitude']?.toDouble(),
-        longitude = json['longitude']?.toDouble();
+        longitude = json['longitude']?.toDouble(),
+        poNumbers = json['poNumbers']?.replaceAll('\n', '') ?? '',
+        pickUpNumbers = json['pickUpNumbers']?.replaceAll('\n', '') ?? '',
+        referenceNumbers = json['referenceNumbers']?.replaceAll('\n', '') ?? '';
 }
 
 class Customer {
