@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:carrier_nest_flutter/rest/loads.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:carrier_nest_flutter/helpers/helpers.dart';
 import 'package:carrier_nest_flutter/helpers/load_utils.dart';
 import 'package:carrier_nest_flutter/helpers/location_utils.dart';
@@ -21,8 +20,9 @@ class LoadDetailsPage extends StatefulWidget {
 
 class _LoadDetailsPageState extends State<LoadDetailsPage> {
   bool _isLoading = true;
-  ExpandedLoad? _load;
-  String? _driverId;
+  late ExpandedLoad _load;
+  late String _driverId;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   void _fetchDriverId() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _driverId = prefs.getString("driverId");
+      _driverId = prefs.getString("driverId")!;
     });
   }
 
@@ -44,11 +44,12 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       setState(() {
         _load = load;
         _isLoading = false;
+        _errorMessage = null;
       });
     } catch (e) {
-      // Handle error
       setState(() {
         _isLoading = false;
+        _errorMessage = "Failed to load details. Tap to retry.";
       });
     }
   }
@@ -58,7 +59,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   void _openRouteInGoogleMaps() {
-    MapUtils.openRouteInGoogleMaps(_load!);
+    MapUtils.openRouteInGoogleMaps(_load);
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -86,8 +87,6 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Future<void> _updateLoadStatus(LoadStatus status) async {
-    if (_load == null || _driverId == null) return;
-
     try {
       var locationData = await LocationUtils.getDeviceLocation();
 
@@ -126,13 +125,15 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_load?.customer.name ?? ''),
+        title: Text(_isLoading == false && _errorMessage == null
+            ? _load.customer.name
+            : ''),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _load != null
-              ? _buildLoadDetails()
-              : const Center(child: Text('No Load Found')),
+          : _errorMessage != null
+              ? _buildErrorView()
+              : _buildLoadDetails(),
     );
   }
 
@@ -140,14 +141,14 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     return ListView(
       padding: const EdgeInsets.all(16.0),
       children: [
-        _infoRow('Ref Num', _load!.refNum),
+        _infoRow('Ref Num', _load.refNum),
         // const Divider(color: Colors.grey),
-        _infoRow('Shipper', _load!.shipper.name),
-        _infoRow('Receiver', _load!.receiver.name),
+        _infoRow('Shipper', _load.shipper.name),
+        _infoRow('Receiver', _load.receiver.name),
         _infoRow('Route Distance',
-            '${metersToMiles(_load!.routeDistance).toStringAsFixed(0)} miles'),
-        _infoRow('Route Duration', secondsToReadable(_load!.routeDuration)),
-        ..._load!.loadDocuments.map((doc) => _documentRow(doc)),
+            '${metersToMiles(_load.routeDistance).toStringAsFixed(0)} miles'),
+        _infoRow('Route Duration', secondsToReadable(_load.routeDuration)),
+        ..._load.loadDocuments.map((doc) => _documentRow(doc)),
         _buildDirectionsButton(),
         _buildBeginWorkButton(),
         _buildCompleteWorkButton(),
@@ -196,7 +197,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _buildBeginWorkButton() {
-    UILoadStatus currentStatus = loadStatus(_load!);
+    UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.booked) {
       return ElevatedButton(
         onPressed: _beginWork,
@@ -207,7 +208,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _buildCompleteWorkButton() {
-    UILoadStatus currentStatus = loadStatus(_load!);
+    UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.inProgress) {
       return ElevatedButton(
         onPressed: _completeWork,
@@ -218,7 +219,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _buildFilePickerButton() {
-    UILoadStatus currentStatus = loadStatus(_load!);
+    UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.delivered ||
         currentStatus == UILoadStatus.podReady) {
       return ElevatedButton.icon(
@@ -264,6 +265,22 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildErrorView() {
+    return GestureDetector(
+      onTap: _fetchLoadDetails,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Text(
+            _errorMessage!,
+            style: const TextStyle(color: Colors.red, fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
     );
   }
 }

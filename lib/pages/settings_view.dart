@@ -4,6 +4,8 @@ import 'package:carrier_nest_flutter/rest/+dio_client.dart';
 import 'package:carrier_nest_flutter/pages/driver_login.dart';
 
 class SettingsView extends StatelessWidget {
+  const SettingsView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<SharedPreferences>(

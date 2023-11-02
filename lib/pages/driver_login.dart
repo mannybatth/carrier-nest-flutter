@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class DriverLoginPage extends StatefulWidget {
+  const DriverLoginPage({super.key});
+
   @override
   _DriverLoginPageState createState() => _DriverLoginPageState();
 }
@@ -25,6 +27,14 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
 
     // _phoneNumberController.text = '2065654638';
     // _carrierCodeController.text = 'deepbrosinc';
+  }
+
+  @override
+  void dispose() {
+    _phoneNumberController.dispose();
+    _carrierCodeController.dispose();
+    _pinController.dispose();
+    super.dispose();
   }
 
   Future<void> _requestPin() async {

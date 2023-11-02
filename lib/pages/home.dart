@@ -12,36 +12,41 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
 
-  // Widget for Loads view
-  final Widget _loadsView = LoadsView();
-
-  // Widget for Settings view
-  final Widget _settingsView = SettingsView();
-
   void onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
   }
 
+  Widget _getCurrentView() {
+    switch (_currentIndex) {
+      case 0:
+        return const LoadsView();
+      case 1:
+        return const SettingsView();
+      default:
+        return const LoadsView();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Carrier Nest'),
+        title: const Text('Carrier Nest'), // Made constant
       ),
-      body: _currentIndex == 0 ? _loadsView : _settingsView,
+      body: _getCurrentView(),
       bottomNavigationBar: BottomNavigationBar(
         onTap: onTabTapped,
         currentIndex: _currentIndex,
         fixedColor: Colors.blue[700],
-        items: [
+        items: const [
           BottomNavigationBarItem(
-            icon: new Icon(Icons.local_shipping),
+            icon: Icon(Icons.local_shipping),
             label: 'Loads',
           ),
           BottomNavigationBarItem(
-            icon: new Icon(Icons.settings),
+            icon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],

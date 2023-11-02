@@ -7,12 +7,15 @@ import 'package:carrier_nest_flutter/pages/load_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoadsView extends StatefulWidget {
+  const LoadsView({super.key});
+
   @override
   _LoadsViewState createState() => _LoadsViewState();
 }
 
 class _LoadsViewState extends State<LoadsView> {
   Future<Map<String, dynamic>>? _loadsFuture;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -21,30 +24,43 @@ class _LoadsViewState extends State<LoadsView> {
   }
 
   Future<void> _fetchLoads() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? jwtToken = prefs.getString('jwtToken');
-    if (jwtToken == null) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => DriverLoginPage()),
-      );
-      return;
-    }
-    String? driverId = prefs.getString('driverId');
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? jwtToken = prefs.getString('jwtToken');
+      if (jwtToken == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const DriverLoginPage()),
+        );
+        return;
+      }
+      String? driverId = prefs.getString('driverId');
 
-    _loadsFuture = Loads.getLoadsExpanded(
-            expand: 'customer,shipper,receiver',
-            sort: Sort(key: 'refNum', order: 'desc'),
-            limit: 10,
-            offset: 0,
-            driverId: driverId)
-        .catchError((error) {
+      _loadsFuture = Loads.getLoadsExpanded(
+        expand: 'customer,shipper,receiver',
+        sort: Sort(key: 'refNum', order: 'desc'),
+        limit: 10,
+        offset: 0,
+        driverId: driverId,
+      ).onError((error, stackTrace) {
+        setState(() {
+          _errorMessage = "$error";
+        });
+        return {'loads': [], 'metadata': {}};
+      }).catchError((error) {
+        setState(() {
+          _errorMessage = "$error";
+        });
+        return {'loads': [], 'metadata': {}};
+      });
+
+      setState(() {});
+    } catch (error) {
       // Handle errors here
-      print("Error fetching loads: $error");
-    });
-
-    // Call setState if needed
-    setState(() {});
+      setState(() {
+        _errorMessage = "$error";
+      });
+    }
   }
 
   @override
@@ -54,86 +70,103 @@ class _LoadsViewState extends State<LoadsView> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else if (snapshot.hasData && snapshot.data!['loads'].isNotEmpty) {
-          List<ExpandedLoad> loads = snapshot.data!['loads'];
-          return ListView.builder(
-            itemCount: loads.length,
-            itemBuilder: (context, index) {
-              ExpandedLoad load = loads[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => LoadDetailsPage(
-                        loadId: load.id,
-                      ),
-                    ),
-                  );
-                },
-                child: Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: <Widget>[
-                            Text(
-                              load.refNum,
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold, fontSize: 20),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          load.customer.name,
-                          style:
-                              TextStyle(color: Colors.grey[600], fontSize: 16),
-                        ),
-                        Divider(thickness: 1, color: Colors.grey[400]),
-                        const SizedBox(height: 10),
-                        RowItem(
-                          icon: Icons.location_on,
-                          title: '${load.shipper.city}, ${load.shipper.state}',
-                          subtitle:
-                              '${load.receiver.city}, ${load.receiver.state}',
-                        ),
-                        const SizedBox(height: 10),
-                        RowItem(
-                          icon: Icons.event,
-                          title: 'Pickup Date',
-                          subtitle: '${load.shipper.date.toString()}',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+        } else if (snapshot.hasError || _errorMessage != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                  'Error fetching loads: ${_errorMessage ?? snapshot.error}'),
+            ),
           );
+        } else if (snapshot.hasData && snapshot.data!['loads'].isNotEmpty) {
+          return _buildLoadsList(snapshot.data!['loads']);
         } else {
-          return const Center(child: Text('No loads found'));
+          return const Center(
+              child: Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'No loads found',
+            ),
+          ));
         }
       },
     );
   }
-}
 
-class RowItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
+  Widget _buildLoadsList(List<ExpandedLoad> loads) {
+    return ListView.builder(
+      itemCount: loads.length,
+      itemBuilder: (context, index) {
+        ExpandedLoad load = loads[index];
+        return GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LoadDetailsPage(loadId: load.id),
+              ),
+            );
+          },
+          child: _buildLoadCard(load),
+        );
+      },
+    );
+  }
 
-  RowItem({required this.icon, required this.title, required this.subtitle});
+  Widget _buildLoadCard(ExpandedLoad load) {
+    return Card(
+      margin: const EdgeInsets.all(8.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            _buildLoadHeader(load.refNum),
+            const SizedBox(height: 10),
+            _buildCustomerName(load.customer.name),
+            Divider(thickness: 1, color: Colors.grey[400]),
+            const SizedBox(height: 10),
+            _buildRowItem(
+              icon: Icons.location_on,
+              title: '${load.shipper.city}, ${load.shipper.state}',
+              subtitle: '${load.receiver.city}, ${load.receiver.state}',
+            ),
+            const SizedBox(height: 10),
+            _buildRowItem(
+              icon: Icons.event,
+              title: 'Pickup Date',
+              subtitle: load.shipper.date.toString(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildLoadHeader(String refNum) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          refNum,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerName(String name) {
+    return Text(
+      name,
+      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+    );
+  }
+
+  Widget _buildRowItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[

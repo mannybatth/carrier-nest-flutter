@@ -27,7 +27,11 @@ class DioClient {
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String appDocPath = appDocDir.path;
 
-    dio = Dio();
+    dio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 15)));
+
     cookieJar = PersistCookieJar(storage: FileStorage("$appDocPath/.cookies"));
     dio.interceptors.add(CookieManager(cookieJar));
 
@@ -45,10 +49,10 @@ class DioClient {
       onError: (DioException error, ErrorInterceptorHandler handler) async {
         if (error.response?.statusCode == 401) {
           // Redirect to the driver login page
-          // Assuming you have a method to navigate to the login page
           navigateToDriverLoginPage();
+          return handler.next(error);
         }
-        return handler.next(error); // Continue with error handling
+        return handler.reject(error); // Continue with error handling
       },
     ));
   }
@@ -58,7 +62,7 @@ class DioClient {
     clearCookies().then((value) => clearPreferences()).then((value) => {
           navigatorKey.currentState?.pushReplacement(MaterialPageRoute(
             builder: (context) =>
-                DriverLoginPage(), // Replace with your login page widget
+                const DriverLoginPage(), // Replace with your login page widget
           ))
         });
   }
