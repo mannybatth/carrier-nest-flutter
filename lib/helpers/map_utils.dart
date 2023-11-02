@@ -9,25 +9,36 @@ class MapUtils {
 
     if (Platform.isIOS) {
       googleMapsUrl = 'comgooglemaps://?q=$encodedAddress';
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl));
+        return;
+      }
+
+      // Try launching Apple Maps if Google Maps can't be launched
+      String appleMapsUrl = 'https://maps.apple.com/?q=$encodedAddress';
+      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+        await launchUrl(Uri.parse(appleMapsUrl));
+        return;
+      }
     } else {
       googleMapsUrl = 'geo:0,0?q=$encodedAddress';
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl));
+        return;
+      }
     }
 
-    if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-      await launchUrl(Uri.parse(googleMapsUrl));
+    // Fallback to web address
+    String googleMapsWebUrl =
+        'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
+    if (await canLaunchUrl(Uri.parse(googleMapsWebUrl))) {
+      await launchUrl(Uri.parse(googleMapsWebUrl));
     } else {
-      // Fallback to web address
-      String googleMapsWebUrl =
-          'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
-      if (await canLaunchUrl(Uri.parse(googleMapsWebUrl))) {
-        await launchUrl(Uri.parse(googleMapsWebUrl));
-      } else {
-        // Handle error: Neither Google Maps app nor web browser can be opened
-      }
+      print('Failed to open maps.');
     }
   }
 
-  static void openRouteInGoogleMaps(ExpandedLoad load) async {
+  static void openRoute(ExpandedLoad load) async {
     // Origin is the load shipper address
     final String origin = '${load.shipper.latitude},${load.shipper.longitude}';
     // Destination is the load receiver address
@@ -41,42 +52,54 @@ class MapUtils {
         : '';
 
     if (origin.isEmpty || destination.isEmpty) {
-      // Handle error: Origin or destination is empty
+      print('Origin or destination is empty.');
       return;
     }
 
     String googleMapsUrl;
 
     if (Platform.isIOS) {
-      // iOS URL Scheme
+      // iOS URL Scheme for Google Maps
       googleMapsUrl =
           'comgooglemaps://?saddr=$origin&daddr=$destination&directionsmode=driving${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl));
+        return;
+      }
+
+      // Try launching Apple Maps if Google Maps can't be launched
+      String appleMapsUrl =
+          'https://maps.apple.com/?dirflg=d&saddr=$origin&daddr=$destination${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
+      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
+        await launchUrl(Uri.parse(appleMapsUrl));
+        return;
+      }
     } else {
       // Android URL Scheme
       googleMapsUrl =
           'google.navigation:q=$destination&mode=d${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
+      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
+        await launchUrl(Uri.parse(googleMapsUrl));
+        return;
+      }
     }
 
-    if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-      await launchUrl(Uri.parse(googleMapsUrl));
+    // Fallback to web route
+    final Uri googleMapsWebUri = Uri.https(
+      'www.google.com',
+      '/maps/dir/',
+      {
+        'api': '1',
+        'origin': origin,
+        'destination': destination,
+        if (waypoints.isNotEmpty) 'waypoints': waypoints,
+        'travelmode': 'driving',
+      },
+    );
+    if (await canLaunchUrl(googleMapsWebUri)) {
+      await launchUrl(googleMapsWebUri);
     } else {
-      // Fallback to web route
-      final Uri googleMapsWebUri = Uri.https(
-        'www.google.com',
-        '/maps/dir/',
-        {
-          'api': '1',
-          'origin': origin,
-          'destination': destination,
-          if (waypoints.isNotEmpty) 'waypoints': waypoints,
-          'travelmode': 'driving',
-        },
-      );
-      if (await canLaunchUrl(googleMapsWebUri)) {
-        await launchUrl(googleMapsWebUri);
-      } else {
-        // Handle error: Neither Google Maps app nor web browser can be opened
-      }
+      print('Failed to open route in maps.');
     }
   }
 }

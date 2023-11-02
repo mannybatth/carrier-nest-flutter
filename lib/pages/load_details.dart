@@ -64,8 +64,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     MapUtils.openAddress(address);
   }
 
-  void _openRouteInGoogleMaps() {
-    MapUtils.openRouteInGoogleMaps(_load);
+  void _getRouteDirections() {
+    MapUtils.openRoute(_load);
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -416,7 +416,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
 
   Widget _buildDirectionsButton() {
     return ElevatedButton.icon(
-      onPressed: _openRouteInGoogleMaps,
+      onPressed: _getRouteDirections,
       icon: const Icon(Icons.map),
       label: const Text('Get Route Directions'),
     );
