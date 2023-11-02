@@ -4,24 +4,20 @@ import 'package:url_launcher/url_launcher.dart';
 
 class MapUtils {
   static const _googleMapsScheme = 'comgooglemapsurl';
-  static const _appleMapsUrl = 'https://maps.apple.com/';
-
-  static Future<bool> _launchUrl(String url) async {
-    return await _launchUri(Uri.parse(url));
-  }
 
   static Future<bool> _launchUri(Uri uri) async {
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-      return true;
+      try {
+        await launchUrl(uri);
+        return true;
+      } catch (e) {
+        return true;
+      }
     }
-    print('Failed to launch URL: ${uri.toString()}');
     return false;
   }
 
   static void openAddress(String address) async {
-    final encodedAddress = Uri.encodeComponent(address);
-
     final googleMapsWebUri =
         Uri.https('www.google.com', '/maps/search/$address');
 
@@ -32,7 +28,9 @@ class MapUtils {
         path: googleMapsWebUri.path,
       );
       if (await _launchUri(schemeUri)) return;
-      if (await _launchUrl('$_appleMapsUrl?q=$encodedAddress')) return;
+
+      final appleUri = Uri.https('maps.apple.com', '/', {'q': address});
+      if (await _launchUri(appleUri)) return;
     }
 
     // Fallback to web address
@@ -49,7 +47,6 @@ class MapUtils {
         : '';
 
     if (origin.isEmpty || destination.isEmpty) {
-      print('Origin or destination is empty.');
       return;
     }
 
