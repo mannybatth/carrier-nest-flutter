@@ -9,6 +9,7 @@ import 'package:carrier_nest_flutter/helpers/helpers.dart';
 import 'package:carrier_nest_flutter/helpers/load_utils.dart';
 import 'package:carrier_nest_flutter/helpers/location_utils.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 enum MenuOptions { notInProgress, notDelivered }
 
@@ -141,6 +142,10 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     }
   }
 
+  String _formatDate(DateTime date) {
+    return DateFormat('MMM dd', 'en_US').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,6 +183,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoTile(
             label: 'Shipper',
             value: _formatLoadStopAddress(_load.shipper),
+            tailingValue:
+                "${_formatDate(_load.shipper.date)}\n${_load.shipper.time}",
             onTap: () {
               _showAddressOptionsDialog(_formatLoadStopAddress(_load.shipper));
             }),
@@ -191,6 +198,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
               _infoTile(
                   label: 'Stop #${index + 1}',
                   value: _formatLoadStopAddress(stop),
+                  tailingValue: "${_formatDate(stop.date)}\n${stop.time}",
                   onTap: () {
                     _showAddressOptionsDialog(_formatLoadStopAddress(stop));
                   }),
@@ -202,6 +210,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoTile(
             label: 'Receiver',
             value: _formatLoadStopAddress(_load.receiver),
+            tailingValue:
+                "${_formatDate(_load.receiver.date)}\n${_load.receiver.time}",
             onTap: () {
               _showAddressOptionsDialog(_formatLoadStopAddress(_load.receiver));
             }),
@@ -372,10 +382,17 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
 
   // Update _infoTile method
   Widget _infoTile(
-      {required String label, required String value, VoidCallback? onTap}) {
+      {required String label,
+      required String value,
+      String? tailingValue,
+      VoidCallback? onTap}) {
     return ListTile(
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(value),
+      trailing: tailingValue != null
+          ? Text(tailingValue,
+              textAlign: TextAlign.end, style: const TextStyle(fontSize: 14))
+          : null,
       onTap: onTap ?? () {},
     );
   }
