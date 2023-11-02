@@ -3,52 +3,53 @@ import 'package:carrier_nest_flutter/models.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MapUtils {
+  static const _googleMapsScheme = 'comgooglemapsurl://';
+  static const _appleMapsUrl = 'https://maps.apple.com/';
+
+  static Future<bool> _launchUrl(String url) async {
+    return await _launchUri(Uri.parse(url));
+  }
+
+  static Future<bool> _launchUri(Uri uri) async {
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+      return true;
+    }
+    print('Failed to launch URL: ${uri.toString()}');
+    return false;
+  }
+
   static void openAddress(String address) async {
-    String encodedAddress = Uri.encodeComponent(address);
-    String googleMapsUrl;
+    final encodedAddress = Uri.encodeComponent(address);
+
+    final googleMapsWebUri = Uri.https(
+      'www.google.com',
+      '/maps/search/',
+      {
+        'api': '1',
+        'query': address,
+      },
+    );
 
     if (Platform.isIOS) {
-      googleMapsUrl = 'comgooglemaps://?q=$encodedAddress';
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(Uri.parse(googleMapsUrl));
-        return;
-      }
-
-      // Try launching Apple Maps if Google Maps can't be launched
-      String appleMapsUrl = 'https://maps.apple.com/?q=$encodedAddress';
-      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-        await launchUrl(Uri.parse(appleMapsUrl));
-        return;
-      }
-    } else {
-      googleMapsUrl = 'geo:0,0?q=$encodedAddress';
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(Uri.parse(googleMapsUrl));
-        return;
-      }
+      final schemeUrl = googleMapsWebUri
+          .toString()
+          .replaceFirst('https://', _googleMapsScheme);
+      if (await _launchUrl(schemeUrl)) return;
+      if (await _launchUrl('$_appleMapsUrl?q=$encodedAddress')) return;
     }
 
     // Fallback to web address
-    String googleMapsWebUrl =
-        'https://www.google.com/maps/search/?api=1&query=$encodedAddress';
-    if (await canLaunchUrl(Uri.parse(googleMapsWebUrl))) {
-      await launchUrl(Uri.parse(googleMapsWebUrl));
-    } else {
-      print('Failed to open maps.');
-    }
+    await _launchUri(googleMapsWebUri);
   }
 
   static void openRoute(ExpandedLoad load) async {
-    // Origin is the load shipper address
-    final String origin = '${load.shipper.latitude},${load.shipper.longitude}';
-    // Destination is the load receiver address
-    final String destination =
-        '${load.receiver.latitude},${load.receiver.longitude}';
-    // Waypoints are the load stops, separated by a pipe
-    final String waypoints = load.stops.isNotEmpty
+    final origin = '${load.shipper.latitude},${load.shipper.longitude}';
+    final destination = '${load.receiver.latitude},${load.receiver.longitude}';
+    final waypoints = load.stops.isNotEmpty
         ? load.stops
             .map((stop) => '${stop.latitude},${stop.longitude}')
-            .join('|')
+            .join('/')
         : '';
 
     if (origin.isEmpty || destination.isEmpty) {
@@ -56,36 +57,7 @@ class MapUtils {
       return;
     }
 
-    String googleMapsUrl;
-
-    if (Platform.isIOS) {
-      // iOS URL Scheme for Google Maps
-      googleMapsUrl =
-          'comgooglemaps://?saddr=$origin&daddr=$destination&directionsmode=driving${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(Uri.parse(googleMapsUrl));
-        return;
-      }
-
-      // Try launching Apple Maps if Google Maps can't be launched
-      String appleMapsUrl =
-          'https://maps.apple.com/?dirflg=d&saddr=$origin&daddr=$destination${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
-      if (await canLaunchUrl(Uri.parse(appleMapsUrl))) {
-        await launchUrl(Uri.parse(appleMapsUrl));
-        return;
-      }
-    } else {
-      // Android URL Scheme
-      googleMapsUrl =
-          'google.navigation:q=$destination&mode=d${waypoints.isNotEmpty ? '&waypoints=$waypoints' : ''}';
-      if (await canLaunchUrl(Uri.parse(googleMapsUrl))) {
-        await launchUrl(Uri.parse(googleMapsUrl));
-        return;
-      }
-    }
-
-    // Fallback to web route
-    final Uri googleMapsWebUri = Uri.https(
+    final googleMapsWebUri = Uri.https(
       'www.google.com',
       '/maps/dir/',
       {
@@ -96,10 +68,17 @@ class MapUtils {
         'travelmode': 'driving',
       },
     );
-    if (await canLaunchUrl(googleMapsWebUri)) {
-      await launchUrl(googleMapsWebUri);
-    } else {
-      print('Failed to open route in maps.');
+
+    if (Platform.isIOS) {
+      final schemeUrl = googleMapsWebUri
+          .toString()
+          .replaceFirst('https://', _googleMapsScheme);
+      if (await _launchUrl(schemeUrl)) {
+        return;
+      }
     }
+
+    // Fallback to web route
+    await _launchUri(googleMapsWebUri);
   }
 }

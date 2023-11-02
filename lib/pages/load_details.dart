@@ -182,11 +182,12 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoTile(label: 'Ref Num', value: _load.refNum),
         _infoTile(
             label: 'Shipper',
-            value: _formatLoadStopAddress(_load.shipper),
+            value: _formatLoadStopAddress(stop: _load.shipper),
             tailingValue:
                 "${_formatDate(_load.shipper.date)}\n${_load.shipper.time}",
             onTap: () {
-              _showAddressOptionsDialog(_formatLoadStopAddress(_load.shipper));
+              _showAddressOptionsDialog(_formatLoadStopAddress(
+                  stop: _load.shipper, includeName: false));
             }),
         _expandableAdditionalInfoTile('Additional Info', _load.shipper),
         Divider(thickness: 1, color: Colors.grey[300]),
@@ -197,10 +198,11 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
             children: [
               _infoTile(
                   label: 'Stop #${index + 1}',
-                  value: _formatLoadStopAddress(stop),
+                  value: _formatLoadStopAddress(stop: stop),
                   tailingValue: "${_formatDate(stop.date)}\n${stop.time}",
                   onTap: () {
-                    _showAddressOptionsDialog(_formatLoadStopAddress(stop));
+                    _showAddressOptionsDialog(
+                        _formatLoadStopAddress(stop: stop, includeName: false));
                   }),
               _expandableAdditionalInfoTile('Additional Info', stop),
               Divider(thickness: 1, color: Colors.grey[300]),
@@ -209,11 +211,12 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         }).toList(),
         _infoTile(
             label: 'Receiver',
-            value: _formatLoadStopAddress(_load.receiver),
+            value: _formatLoadStopAddress(stop: _load.receiver),
             tailingValue:
                 "${_formatDate(_load.receiver.date)}\n${_load.receiver.time}",
             onTap: () {
-              _showAddressOptionsDialog(_formatLoadStopAddress(_load.receiver));
+              _showAddressOptionsDialog(_formatLoadStopAddress(
+                  stop: _load.receiver, includeName: false));
             }),
         _expandableAdditionalInfoTile('Additional Info', _load.receiver),
         Divider(thickness: 1, color: Colors.grey[300]),
@@ -339,8 +342,9 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     );
   }
 
-  String _formatLoadStopAddress(LoadStop stop) {
-    return "${stop.name}\n${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
+  String _formatLoadStopAddress(
+      {required LoadStop stop, bool includeName = true}) {
+    return "${includeName ? '${stop.name}\n' : ''}${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
   }
 
   // Method to show the bottom sheet modal
