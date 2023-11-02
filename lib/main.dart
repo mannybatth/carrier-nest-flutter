@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'Carrier Nest',
       navigatorKey: navigatorKey, // Use the global navigator key
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const MyHomePage(),

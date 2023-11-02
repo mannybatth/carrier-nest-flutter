@@ -5,6 +5,7 @@ import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:carrier_nest_flutter/pages/load_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 class LoadsView extends StatefulWidget {
   const LoadsView({super.key});
@@ -62,6 +63,10 @@ class _LoadsViewState extends State<LoadsView> {
         _errorMessage = "$error";
       });
     }
+  }
+
+  String _formatDate(DateTime date) {
+    return DateFormat('MMM dd, yyyy', 'en_US').format(date);
   }
 
   @override
@@ -127,16 +132,17 @@ class _LoadsViewState extends State<LoadsView> {
             _buildCustomerName(load.customer.name),
             Divider(thickness: 1, color: Colors.grey[400]),
             const SizedBox(height: 10),
-            _buildRowItem(
-              icon: Icons.location_on,
-              title: '${load.shipper.city}, ${load.shipper.state}',
-              subtitle: '${load.receiver.city}, ${load.receiver.state}',
+            _buildLocationRowItem(
+              fromCity: load.shipper.city,
+              fromState: load.shipper.state,
+              toCity: load.receiver.city,
+              toState: load.receiver.state,
             ),
             const SizedBox(height: 10),
             _buildRowItem(
               icon: Icons.event,
               title: 'Pickup Date',
-              subtitle: load.shipper.date.toString(),
+              subtitle: _formatDate(load.shipper.date),
             ),
           ],
         ),
@@ -159,7 +165,60 @@ class _LoadsViewState extends State<LoadsView> {
   Widget _buildCustomerName(String name) {
     return Text(
       name,
-      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+      style: TextStyle(color: Colors.grey[800], fontSize: 16),
+    );
+  }
+
+  Widget _buildLocationRowItem({
+    required String fromCity,
+    required String fromState,
+    required String toCity,
+    required String toState,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Icon(Icons.location_on, color: Colors.blue[700]),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              RichText(
+                text: TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'From: ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: '$fromCity, $fromState',
+                      style: TextStyle(color: Colors.grey[800]),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 4),
+              RichText(
+                text: TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'To: ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black),
+                    ),
+                    TextSpan(
+                      text: '$toCity, $toState',
+                      style: TextStyle(color: Colors.grey[800]),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -183,7 +242,7 @@ class _LoadsViewState extends State<LoadsView> {
               ),
               Text(
                 subtitle,
-                style: TextStyle(color: Colors.grey[600]),
+                style: TextStyle(color: Colors.grey[800]),
               ),
             ],
           ),
