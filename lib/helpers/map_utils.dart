@@ -3,7 +3,7 @@ import 'package:carrier_nest_flutter/models.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MapUtils {
-  static const _googleMapsScheme = 'comgooglemapsurl://';
+  static const _googleMapsScheme = 'comgooglemapsurl';
   static const _appleMapsUrl = 'https://maps.apple.com/';
 
   static Future<bool> _launchUrl(String url) async {
@@ -22,20 +22,16 @@ class MapUtils {
   static void openAddress(String address) async {
     final encodedAddress = Uri.encodeComponent(address);
 
-    final googleMapsWebUri = Uri.https(
-      'www.google.com',
-      '/maps/search/',
-      {
-        'api': '1',
-        'query': address,
-      },
-    );
+    final googleMapsWebUri =
+        Uri.https('www.google.com', '/maps/search/$address');
 
     if (Platform.isIOS) {
-      final schemeUrl = googleMapsWebUri
-          .toString()
-          .replaceFirst('https://', _googleMapsScheme);
-      if (await _launchUrl(schemeUrl)) return;
+      final schemeUri = Uri(
+        scheme: _googleMapsScheme,
+        host: googleMapsWebUri.host,
+        path: googleMapsWebUri.path,
+      );
+      if (await _launchUri(schemeUri)) return;
       if (await _launchUrl('$_appleMapsUrl?q=$encodedAddress')) return;
     }
 
@@ -59,21 +55,20 @@ class MapUtils {
 
     final googleMapsWebUri = Uri.https(
       'www.google.com',
-      '/maps/dir/',
+      '/maps/dir/$origin/$waypoints/$destination',
       {
-        'api': '1',
-        'origin': origin,
-        'destination': destination,
-        if (waypoints.isNotEmpty) 'waypoints': waypoints,
         'travelmode': 'driving',
       },
     );
 
     if (Platform.isIOS) {
-      final schemeUrl = googleMapsWebUri
-          .toString()
-          .replaceFirst('https://', _googleMapsScheme);
-      if (await _launchUrl(schemeUrl)) {
+      final schemeUri = Uri(
+        scheme: _googleMapsScheme,
+        host: googleMapsWebUri.host,
+        path: googleMapsWebUri.path,
+        queryParameters: googleMapsWebUri.queryParameters,
+      );
+      if (await _launchUri(schemeUri)) {
         return;
       }
     }
