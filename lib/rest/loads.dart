@@ -10,7 +10,7 @@ class Loads {
     String? driverId,
     int? limit,
     int? offset,
-    bool? currentOnly,
+    bool? upcomingOnly,
     String? expand,
   }) async {
     final Map<String, String> params = {
@@ -21,7 +21,7 @@ class Loads {
       if (driverId != null) 'driverId': driverId,
       if (limit != null) 'limit': limit.toString(),
       if (offset != null) 'offset': offset.toString(),
-      if (currentOnly != null) 'currentOnly': currentOnly ? '1' : '0',
+      if (upcomingOnly != null) 'upcomingOnly': upcomingOnly ? '1' : '0',
     };
 
     final response = await DioClient()

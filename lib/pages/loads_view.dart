@@ -42,6 +42,7 @@ class _LoadsViewState extends State<LoadsView> {
         limit: 10,
         offset: 0,
         driverId: driverId,
+        upcomingOnly: true,
       ).onError((error, stackTrace) {
         setState(() {
           _errorMessage = "$error";
