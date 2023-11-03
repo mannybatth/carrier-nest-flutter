@@ -28,6 +28,10 @@ class LoadDetailsPage extends StatefulWidget {
 
 class _LoadDetailsPageState extends State<LoadDetailsPage> {
   bool _isLoading = true;
+  bool _isStatusChangeLoading = false;
+  bool _isUploadingPod = false;
+  bool _isDeletingDocument = false;
+
   late ExpandedLoad _load;
   late String _driverId;
   bool _dropOffDatePassed = false;
@@ -47,7 +51,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     });
   }
 
-  void _fetchLoadDetails() async {
+  Future<void> _fetchLoadDetails() async {
     try {
       ExpandedLoad load = await Loads.getLoadById(widget.loadId);
       setState(() {
@@ -73,6 +77,10 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Future<void> _uploadFile(PlatformFile file) async {
+    setState(() {
+      _isUploadingPod = true;
+    });
+
     var locationData = await LocationUtils.getDeviceLocation();
     var uploadResponse = await PodUpload.uploadFileToGCS(file);
 
@@ -92,7 +100,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           longitude: longitude,
           latitude: latitude);
 
-      _fetchLoadDetails();
+      await _fetchLoadDetails();
 
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Document uploaded successfully')));
@@ -101,6 +109,10 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           content: Text('Error uploading document: Upload response invalid'),
           backgroundColor: Colors.red));
     }
+
+    setState(() {
+      _isUploadingPod = false;
+    });
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -133,12 +145,15 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Future<void> deleteLoadDocument(String id) async {
+    setState(() {
+      _isDeletingDocument = true; // Disable the list selection
+    });
     try {
       await Loads.deleteLoadDocumentFromLoad(_load.id, id, query: {
         'driverId': _driverId,
         'isPod': true,
       });
-      _fetchLoadDetails();
+      await _fetchLoadDetails();
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Document deleted successfully')));
     } catch (e) {
@@ -146,9 +161,41 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           content: Text('Error deleting document: ${e.toString()}'),
           backgroundColor: Colors.red));
     }
+    setState(() {
+      _isDeletingDocument = false;
+    });
+  }
+
+  Future<bool> showDeleteConfirmationDialog(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Confirm Delete'),
+              content:
+                  const Text('Are you sure you want to delete this document?'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('Cancel'),
+                  onPressed: () => Navigator.of(context)
+                      .pop(false), // Dismisses the dialog and returns false
+                ),
+                TextButton(
+                  child: const Text('Delete'),
+                  onPressed: () => Navigator.of(context)
+                      .pop(true), // Dismisses the dialog and returns true
+                ),
+              ],
+            );
+          },
+        ) ??
+        false; // If dialog is dismissed by tapping outside, return false
   }
 
   Future<void> _updateLoadStatus(LoadStatus status) async {
+    setState(() {
+      _isStatusChangeLoading = true;
+    });
     try {
       var locationData = await LocationUtils.getDeviceLocation();
 
@@ -168,23 +215,26 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         );
       }
 
-      _fetchLoadDetails();
+      await _fetchLoadDetails();
     } catch (e) {
       // Handle error
       // For example: Show a dialog or a snackbar with the error message
     }
+    setState(() {
+      _isStatusChangeLoading = false;
+    });
   }
 
-  void _stopWork() {
-    _updateLoadStatus(LoadStatus.CREATED);
+  Future<void> _stopWork() {
+    return _updateLoadStatus(LoadStatus.CREATED);
   }
 
-  void _beginWork() {
-    _updateLoadStatus(LoadStatus.IN_PROGRESS);
+  Future<void> _beginWork() {
+    return _updateLoadStatus(LoadStatus.IN_PROGRESS);
   }
 
-  void _completeWork() {
-    _updateLoadStatus(LoadStatus.DELIVERED);
+  Future<void> _completeWork() {
+    return _updateLoadStatus(LoadStatus.DELIVERED);
   }
 
   void _handleMenuOption(MenuOptions option) {
@@ -235,7 +285,13 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
             ],
           ),
         ),
-        ..._generateDocumentListItems(),
+        Padding(
+          padding: const EdgeInsets.symmetric(
+              vertical: 8.0), // Add vertical padding here
+          child: Column(
+            children: _generateDocumentListItems(),
+          ),
+        ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load.refNum),
         _infoTile(
@@ -486,7 +542,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       }
 
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
         decoration: BoxDecoration(
           border: Border(
             left: borderSide,
@@ -505,21 +561,30 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           ),
           trailing: IconButton(
             icon: const Icon(Icons.delete),
-            onPressed: () {
-              deleteLoadDocument(_load.podDocuments[index].id!);
-            },
+            onPressed: _isDeletingDocument
+                ? null
+                : () async {
+                    // Show confirmation dialog before deleting
+                    bool confirmDelete =
+                        await showDeleteConfirmationDialog(context);
+                    if (confirmDelete) {
+                      deleteLoadDocument(_load.podDocuments[index].id!);
+                    }
+                  },
           ),
-          onTap: () async {
-            // Implement logic to open document
-            final url = _load.podDocuments[index].fileUrl;
-            try {
-              await launchUrl(Uri.parse(url));
-            } catch (e) {
-              final snackBar =
-                  SnackBar(content: Text('Failed to open document: $e'));
-              ScaffoldMessenger.of(context).showSnackBar(snackBar);
-            }
-          },
+          onTap: _isDeletingDocument
+              ? null
+              : () async {
+                  // Implement logic to open document
+                  final url = _load.podDocuments[index].fileUrl;
+                  try {
+                    await launchUrl(Uri.parse(url));
+                  } catch (e) {
+                    final snackBar =
+                        SnackBar(content: Text('Failed to open document: $e'));
+                    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+                  }
+                },
         ),
       );
     });
@@ -537,21 +602,18 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     UILoadStatus currentStatus = loadStatus(_load);
     if (currentStatus == UILoadStatus.booked) {
       return Expanded(
-        child: ElevatedButton(
-          onPressed: _beginWork,
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment
-                .spaceBetween, // This will stretch the button content
-            children: [
-              Text(''), // Empty text widget to create space
-              Text('Begin Work'),
-              Text(''), // Empty text widget to create space
-            ],
-          ),
-        ),
-      );
+          child: ElevatedButton(
+        onPressed: _isStatusChangeLoading ? null : _beginWork,
+        child: _isStatusChangeLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2.0),
+              )
+            : const Text('Begin Work'),
+      ));
     }
-    return Container(); // Return an empty container if the condition is not met
+    return Container();
   }
 
   Widget _buildCompleteWorkButton() {
@@ -559,16 +621,15 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     if (currentStatus == UILoadStatus.inProgress) {
       return Expanded(
         child: ElevatedButton(
-          onPressed: _completeWork,
-          child: const Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween, // Stretch the button content
-            children: [
-              Text(''), // Empty text widget to create space
-              Text('Complete Work'),
-              Text(''), // Empty text widget to create space
-            ],
-          ),
+          onPressed: _isStatusChangeLoading ? null : _completeWork,
+          child: _isStatusChangeLoading
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                )
+              : const Text(
+                  'Complete Work'), // Empty text widget to create space
         ),
       );
     }
@@ -581,17 +642,21 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         currentStatus == UILoadStatus.podReady) {
       return Expanded(
         child: ElevatedButton.icon(
-          onPressed: () => _showPickOptionsDialog(context),
-          icon: const Icon(Icons.upload_file),
-          label: const Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween, // Stretch the button content
-            children: [
-              Text(''), // Empty text widget to create space
-              Text('Upload Document'),
-              Text(''), // Empty text widget to create space
-            ],
-          ),
+          onPressed: _isStatusChangeLoading || _isUploadingPod
+              ? null
+              : () {
+                  _showPickOptionsDialog(context);
+                },
+          icon: _isStatusChangeLoading || _isUploadingPod
+              ? const SizedBox.shrink() // This will effectively hide the icon
+              : const Icon(Icons.upload_file),
+          label: _isStatusChangeLoading || _isUploadingPod
+              ? const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2.0),
+                )
+              : const Text('Upload Document'),
         ),
       );
     }
