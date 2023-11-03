@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>Carrier Nest Flutter</string>
+    <string>Carrier Nest</string>
     <key>CFBundleDocumentTypes</key>
     <array>
       <dict/>
