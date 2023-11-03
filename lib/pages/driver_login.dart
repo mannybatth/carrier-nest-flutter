@@ -27,11 +27,6 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
     super.initState();
 
     _driverAuth.fetchCsrfToken();
-    _phoneNumberController.text = '3172245337';
-    _carrierCodeController.text = 'psbexpressinc';
-
-    // _phoneNumberController.text = '2065654638';
-    // _carrierCodeController.text = 'deepbrosinc';
   }
 
   @override
