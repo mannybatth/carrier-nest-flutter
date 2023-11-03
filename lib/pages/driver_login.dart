@@ -19,6 +19,9 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
   bool _isSecondPhase = false;
   final DriverAuth _driverAuth = DriverAuth();
 
+  bool _isRequestPinLoading = false;
+  bool _isVerifyPinLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,38 +44,56 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
   }
 
   Future<void> _requestPin() async {
-    final response = await _driverAuth.requestPin(
-        phoneNumber: _phoneNumberController.text,
-        carrierCode: _carrierCodeController.text);
+    setState(() {
+      _isRequestPinLoading = true;
+    });
+    try {
+      final response = await _driverAuth.requestPin(
+          phoneNumber: _phoneNumberController.text,
+          carrierCode: _carrierCodeController.text);
 
-    if (response.statusCode == 200 || response.statusCode == 302) {
-      setState(() {
-        _isSecondPhase = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          FocusScope.of(context).requestFocus(_pinFocusNode);
+      if (response.statusCode == 200 || response.statusCode == 302) {
+        setState(() {
+          _isSecondPhase = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            FocusScope.of(context).requestFocus(_pinFocusNode);
+          });
         });
+      } else {
+        // TODO: Handle error
+      }
+    } finally {
+      setState(() {
+        _isRequestPinLoading = false;
       });
-    } else {
-      // TODO: Handle error
     }
   }
 
   Future<void> _verifyPin() async {
-    var response = await _driverAuth.verifyPin(
-        phoneNumber: _phoneNumberController.text,
-        carrierCode: _carrierCodeController.text,
-        code: _pinController.text);
+    setState(() {
+      _isVerifyPinLoading = true;
+    });
+    try {
+      var response = await _driverAuth.verifyPin(
+          phoneNumber: _phoneNumberController.text,
+          carrierCode: _carrierCodeController.text,
+          code: _pinController.text);
 
-    if (response.statusCode == 200 || response.statusCode == 302) {
-      // Redirect to the home page
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) =>
-                const MyHomePage()), // Assuming HomePage() is the home page widget
-      );
-    } else {
-      // TODO: Handle error
+      if (response.statusCode == 200 || response.statusCode == 302) {
+        // Redirect to the home page
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) =>
+                  const MyHomePage()), // Assuming HomePage() is the home page widget
+        );
+      } else {
+        // TODO: Handle error
+      }
+    } finally {
+      setState(() {
+        _isVerifyPinLoading = false;
+      });
     }
   }
 
@@ -114,7 +135,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
           const SizedBox(height: 16),
           _buildTextField(_carrierCodeController, 'Carrier Code'),
           const SizedBox(height: 16),
-          _buildButton(_requestPin, 'Login'),
+          _buildButton(_requestPin, 'Login', _isRequestPinLoading),
         ],
       ),
     );
@@ -126,7 +147,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
         _buildTruckIcon(),
         _buildTextField(_pinController, 'PIN', focusNode: _pinFocusNode),
         const SizedBox(height: 16),
-        _buildButton(_verifyPin, 'Verify PIN'),
+        _buildButton(_verifyPin, 'Verify PIN', _isVerifyPinLoading),
       ],
     );
   }
@@ -143,26 +164,37 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
     );
   }
 
-  Widget _buildButton(VoidCallback onPressed, String buttonText) {
+  // Modify _buildButton to handle loading state
+  Widget _buildButton(
+      VoidCallback onPressed, String buttonText, bool isLoading) {
     return InkWell(
-        onTap: onPressed,
-        child: Container(
-          height: 50,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              gradient: LinearGradient(colors: [
-                Colors.blue,
-                Colors.blue.withOpacity(0.8),
-              ])),
-          child: Center(
-            child: Text(
-              buttonText,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18),
-            ),
+      onTap: isLoading ? null : onPressed, // Disable button when loading
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          gradient: LinearGradient(
+            colors: [
+              Colors.blue,
+              Colors.blue.withOpacity(0.8),
+            ],
           ),
-        ));
+        ),
+        child: Center(
+          child: isLoading
+              ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                      Colors.white)) // Show spinner when loading
+              : Text(
+                  buttonText,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+        ),
+      ),
+    );
   }
 }
