@@ -16,27 +16,33 @@ class SettingsView extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         } else if (snapshot.hasData) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                    'Phone Number: ${snapshot.data!.getString('phoneNumber')}'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    await DioClient().clearCookies();
-                    await DioClient().clearPreferences();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => DriverLoginPage()),
-                    );
-                  },
-                  child: const Text('Logout'),
-                ),
-              ],
-            ),
+          return ListView(
+            children: <Widget>[
+              ListTile(
+                  title: const Text('Phone Number'),
+                  subtitle: Text(snapshot.data!.getString('phoneNumber') ??
+                      'Not available'),
+                  onTap: () {}),
+              ListTile(
+                  title: const Text('Carrier Code'),
+                  subtitle: Text(snapshot.data!.getString('carrierCode') ??
+                      'Not available'),
+                  onTap: () {}),
+              const Divider(), // Added Divider here
+              ListTile(
+                leading: const Icon(Icons.logout), // Added Icon here
+                title: const Text('Logout'),
+                onTap: () async {
+                  await DioClient().clearCookies();
+                  await DioClient().clearPreferences();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const DriverLoginPage()),
+                  );
+                },
+              ),
+            ],
           );
         } else {
           return const Center(child: Text('No data found'));

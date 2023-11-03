@@ -1,6 +1,7 @@
 import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:carrier_nest_flutter/rest/+dio_client.dart';
+import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Loads {
@@ -114,6 +115,71 @@ class Loads {
       return load;
     } else {
       throw Exception('Failed to update load status');
+    }
+  }
+
+  static Future<LoadDocument> addLoadDocumentToLoad(
+    String loadId,
+    LoadDocument loadDocument, {
+    String? driverId,
+    bool? isPod,
+    double? longitude,
+    double? latitude,
+  }) async {
+    final Map<String, dynamic> extras = {
+      if (driverId != null) 'driverId': driverId,
+      if (isPod != null) 'isPod': isPod,
+      if (longitude != null) 'longitude': longitude,
+      if (latitude != null) 'latitude': latitude,
+    };
+
+    final response = await DioClient().dio.post(
+          '$apiUrl/loads/$loadId/documents',
+          data: {
+            'loadDocument': loadDocument.toJson(),
+            ...extras,
+          },
+          options: Options(
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> errors = response.data?['errors'] ?? [];
+      if (errors.isNotEmpty) {
+        throw Exception(errors.map((e) => e.toString()).join(', '));
+      }
+
+      final LoadDocument resultLoadDocument =
+          LoadDocument.fromJson(response.data?['data']['loadDocument']);
+      return resultLoadDocument;
+    } else {
+      throw Exception('Failed to add load document');
+    }
+  }
+
+  static Future<String> deleteLoadDocumentFromLoad(
+    String loadId,
+    String loadDocumentId, {
+    Map<String, dynamic>? query,
+  }) async {
+    final response = await DioClient().dio.delete(
+          '$apiUrl/loads/$loadId/documents/$loadDocumentId',
+          queryParameters: query,
+        );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> errors = response.data?['errors'] ?? [];
+      if (errors.isNotEmpty) {
+        throw Exception(errors.map((e) => e.toString()).join(', '));
+      }
+
+      final String result = response.data?['data']['result'];
+      return result;
+    } else {
+      throw Exception('Failed to delete load document');
     }
   }
 }

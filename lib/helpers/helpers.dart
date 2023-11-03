@@ -4,7 +4,7 @@ double metersToMiles(double meters) {
 
 String secondsToReadable(double seconds) {
   if (seconds < 60) {
-    return "${seconds} sec";
+    return "$seconds sec";
   }
 
   if (seconds < 60 * 60) {

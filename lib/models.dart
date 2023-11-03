@@ -247,7 +247,7 @@ class Driver {
 }
 
 class LoadDocument {
-  final String id;
+  final String? id;
   final String? driverId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -258,8 +258,8 @@ class LoadDocument {
   final int fileSize;
 
   LoadDocument({
-    required this.id,
-    required this.driverId,
+    this.id,
+    this.driverId,
     this.createdAt,
     this.updatedAt,
     required this.fileKey,
@@ -282,6 +282,19 @@ class LoadDocument {
         fileName = json['fileName'],
         fileType = json['fileType'],
         fileSize = json['fileSize'];
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'driverId': driverId,
+      'createdAt': createdAt?.toIso8601String(),
+      'updatedAt': updatedAt?.toIso8601String(),
+      'fileKey': fileKey,
+      'fileUrl': fileUrl,
+      'fileName': fileName,
+      'fileType': fileType,
+      'fileSize': fileSize,
+    };
+  }
 }
 
 class LoadActivity {

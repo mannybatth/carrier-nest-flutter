@@ -86,12 +86,14 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
       children: [
         TextField(
           controller: _phoneNumberController,
-          decoration: const InputDecoration(labelText: 'Phone Number'),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: 'Phone Number'),
         ),
         const SizedBox(height: 16),
         TextField(
           controller: _carrierCodeController,
-          decoration: const InputDecoration(labelText: 'Carrier Code'),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: 'Carrier Code'),
         ),
         const SizedBox(height: 16),
         ElevatedButton(
@@ -107,7 +109,8 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
       children: [
         TextField(
           controller: _pinController,
-          decoration: const InputDecoration(labelText: 'PIN'),
+          decoration: const InputDecoration(
+              border: OutlineInputBorder(), labelText: 'PIN'),
         ),
         const SizedBox(height: 16),
         ElevatedButton(

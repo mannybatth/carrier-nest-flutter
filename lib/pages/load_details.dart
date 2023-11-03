@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:carrier_nest_flutter/helpers/map_utils.dart';
+import 'package:carrier_nest_flutter/rest/pod_upload.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
@@ -10,6 +13,7 @@ import 'package:carrier_nest_flutter/helpers/load_utils.dart';
 import 'package:carrier_nest_flutter/helpers/location_utils.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 enum MenuOptions { notInProgress, notDelivered }
 
@@ -68,13 +72,50 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     MapUtils.openRoute(_load);
   }
 
+  Future<void> _uploadFile(PlatformFile file) async {
+    var locationData = await LocationUtils.getDeviceLocation();
+    var uploadResponse = await PodUpload.uploadFileToGCS(file);
+
+    if (uploadResponse.uniqueFileName != null) {
+      final simpleDoc = LoadDocument.fromJson({
+        'fileKey': uploadResponse.uniqueFileName,
+        'fileUrl': uploadResponse.gcsInputUri,
+        'fileName': uploadResponse.originalFileName,
+        'fileType': file.extension,
+        'fileSize': file.size,
+      });
+      final longitude = locationData?.longitude;
+      final latitude = locationData?.latitude;
+      await Loads.addLoadDocumentToLoad(_load.id, simpleDoc,
+          driverId: _driverId,
+          isPod: true,
+          longitude: longitude,
+          latitude: latitude);
+
+      _fetchLoadDetails();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Document uploaded successfully')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error uploading document: Upload response invalid'),
+          backgroundColor: Colors.red));
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: source);
 
     if (image != null) {
-      // Image selected
-      // You can access the image file using image.path
+      final PlatformFile file = PlatformFile(
+        name: image.name,
+        path: image.path,
+        size: await File(image.path).length(),
+        bytes: await File(image.path).readAsBytes(),
+      );
+
+      await _uploadFile(file);
     } else {
       // User canceled the picker
     }
@@ -84,11 +125,26 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
 
     if (result != null) {
-      // File selected
       PlatformFile file = result.files.first;
-      // You can access the file's path using file.path
+      await _uploadFile(file);
     } else {
       // User canceled the picker
+    }
+  }
+
+  Future<void> deleteLoadDocument(String id) async {
+    try {
+      await Loads.deleteLoadDocumentFromLoad(_load.id, id, query: {
+        'driverId': _driverId,
+        'isPod': true,
+      });
+      _fetchLoadDetails();
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Document deleted successfully')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Error deleting document: ${e.toString()}'),
+          backgroundColor: Colors.red));
     }
   }
 
@@ -179,6 +235,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
             ],
           ),
         ),
+        ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load.refNum),
         _infoTile(
             label: 'Shipper',
@@ -227,7 +284,6 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoTile(
             label: 'Route Duration',
             value: secondsToReadable(_load.routeDuration)),
-        ..._load.loadDocuments.map((doc) => _documentRow(doc)),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: _buildDirectionsButton(),
@@ -402,18 +458,30 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _documentRow(LoadDocument doc) {
-    return ListTile(
-      title: Text(doc.fileName),
-      trailing: _driverId == doc.driverId
-          ? IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                // Implement logic to delete document
-              },
-            )
-          : null,
-      onTap: () {
-        // Implement logic to open document
+    return Builder(
+      builder: (BuildContext context) {
+        return ListTile(
+          title: Text(doc.fileName),
+          trailing: _driverId == doc.driverId
+              ? IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    deleteLoadDocument(doc.id!);
+                  },
+                )
+              : null,
+          onTap: () async {
+            // Implement logic to open document
+            final url = doc.fileUrl;
+            try {
+              await launchUrl(Uri.parse(url));
+            } catch (e) {
+              final snackBar =
+                  SnackBar(content: Text('Failed to open document: $e'));
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }
+          },
+        );
       },
     );
   }

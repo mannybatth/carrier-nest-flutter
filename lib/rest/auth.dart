@@ -18,7 +18,7 @@ class DriverAuth {
   }
 
   Future<Response> requestPin(
-      {String? phoneNumber, String? carrierCode}) async {
+      {required String phoneNumber, required String carrierCode}) async {
     var response =
         await DioClient().dio.post('$apiUrl/auth/callback/driver_auth',
             data: {
@@ -37,7 +37,9 @@ class DriverAuth {
   }
 
   Future<Response> verifyPin(
-      {String? phoneNumber, String? carrierCode, String? code}) async {
+      {required String phoneNumber,
+      required String carrierCode,
+      required String code}) async {
     var response =
         await DioClient().dio.post('$apiUrl/auth/callback/driver_auth',
             data: {
@@ -75,6 +77,7 @@ class DriverAuth {
       await prefs.setString("driverId", tokenData["driverId"]);
       await prefs.setString("phoneNumber", tokenData["phoneNumber"]);
       await prefs.setString("carrierId", tokenData["carrierId"]);
+      await prefs.setString("carrierCode", carrierCode);
       await prefs.setInt("exp", tokenData["exp"]);
     } else {
       // TODO: Handle error
