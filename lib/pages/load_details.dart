@@ -95,9 +95,9 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       _fetchLoadDetails();
 
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Document uploaded successfully')));
+          const SnackBar(content: Text('Document uploaded successfully')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Error uploading document: Upload response invalid'),
           backgroundColor: Colors.red));
     }
@@ -140,7 +140,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       });
       _fetchLoadDetails();
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Document deleted successfully')));
+          const SnackBar(content: Text('Document deleted successfully')));
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Error deleting document: ${e.toString()}'),
@@ -235,7 +235,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
             ],
           ),
         ),
-        ..._load.podDocuments.map((doc) => _documentRow(doc)),
+        ..._generateDocumentListItems(),
+        // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load.refNum),
         _infoTile(
             label: 'Shipper',
@@ -457,22 +458,60 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     );
   }
 
-  Widget _documentRow(LoadDocument doc) {
-    return Builder(
-      builder: (BuildContext context) {
-        return ListTile(
-          title: Text(doc.fileName),
-          trailing: _driverId == doc.driverId
-              ? IconButton(
-                  icon: const Icon(Icons.delete),
-                  onPressed: () {
-                    deleteLoadDocument(doc.id!);
-                  },
-                )
-              : null,
+  List<Widget> _generateDocumentListItems() {
+    return List.generate(_load.podDocuments.length, (int index) {
+      bool isFirst = index == 0;
+      bool isLast = index == _load.podDocuments.length - 1;
+      bool isOnly = _load.podDocuments.length == 1;
+
+      BorderSide borderSide = BorderSide(color: Colors.grey[300]!, width: 1);
+      BorderSide zeroBorderSide =
+          BorderSide(color: Colors.grey[300]!, width: 0);
+
+      BorderRadiusGeometry borderRadius;
+      if (isOnly) {
+        borderRadius = BorderRadius.circular(8.0);
+      } else if (isFirst) {
+        borderRadius = const BorderRadius.only(
+          topLeft: Radius.circular(8.0),
+          topRight: Radius.circular(8.0),
+        );
+      } else if (isLast) {
+        borderRadius = const BorderRadius.only(
+          bottomLeft: Radius.circular(8.0),
+          bottomRight: Radius.circular(8.0),
+        );
+      } else {
+        borderRadius = BorderRadius.circular(0);
+      }
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+        decoration: BoxDecoration(
+          border: Border(
+            left: borderSide,
+            right: borderSide,
+            top: borderSide,
+            bottom: isLast ? borderSide : zeroBorderSide,
+          ),
+          borderRadius: borderRadius,
+        ),
+        child: ListTile(
+          contentPadding: const EdgeInsets.only(left: 12.0, right: 8.0),
+          leading: const Icon(Icons.attach_file, color: Colors.grey),
+          title: Text(
+            _load.podDocuments[index].fileName,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: () {
+              deleteLoadDocument(_load.podDocuments[index].id!);
+            },
+          ),
           onTap: () async {
             // Implement logic to open document
-            final url = doc.fileUrl;
+            final url = _load.podDocuments[index].fileUrl;
             try {
               await launchUrl(Uri.parse(url));
             } catch (e) {
@@ -481,9 +520,9 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
               ScaffoldMessenger.of(context).showSnackBar(snackBar);
             }
           },
-        );
-      },
-    );
+        ),
+      );
+    });
   }
 
   Widget _buildDirectionsButton() {
