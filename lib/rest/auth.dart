@@ -36,7 +36,7 @@ class DriverAuth {
     return response;
   }
 
-  Future<Response> verifyPin(
+  Future<dynamic> verifyPin(
       {required String phoneNumber,
       required String carrierCode,
       required String code}) async {
@@ -71,19 +71,24 @@ class DriverAuth {
           .dio
           .get<Map<String, dynamic>>('$apiUrl/auth/get-token');
 
-      // Decode the response
-      final tokenData = tokenResponse.data?["token"];
+      if (tokenResponse.data != null) {
+        final tokenData = tokenResponse.data?["token"];
 
-      await prefs.setString("driverId", tokenData["driverId"]);
-      await prefs.setString("phoneNumber", tokenData["phoneNumber"]);
-      await prefs.setString("carrierId", tokenData["carrierId"]);
-      await prefs.setString("carrierCode", carrierCode);
-      await prefs.setInt("exp", tokenData["exp"]);
+        if (tokenData != null) {
+          await prefs.setString("driverId", tokenData["driverId"]);
+          await prefs.setString("phoneNumber", tokenData["phoneNumber"]);
+          await prefs.setString("carrierId", tokenData["carrierId"]);
+          await prefs.setString("carrierCode", carrierCode);
+          await prefs.setInt("exp", tokenData["exp"]);
+
+          return tokenData;
+        }
+      }
     } else {
       // TODO: Handle error
     }
 
-    return response;
+    return null;
   }
 
   String _extractSessionToken(String cookieString) {
