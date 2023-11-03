@@ -486,7 +486,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       }
 
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
         decoration: BoxDecoration(
           border: Border(
             left: borderSide,
