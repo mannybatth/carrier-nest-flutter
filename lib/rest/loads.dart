@@ -55,7 +55,7 @@ class Loads {
     String? driverId = prefs.getString("driverId");
 
     String expand =
-        'customer,shipper,receiver,stops,invoice,driver,documents,carrier';
+        'customer,shipper,receiver,stops,invoice,route,documents,carrier';
 
     final Map<String, String> params = {
       'expand': expand,
