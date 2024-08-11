@@ -269,6 +269,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _buildLoadDetails() {
+    final firstRouteLeg = _load.route?.routeLegs.first;
+
     return ListView(
       padding: const EdgeInsets.only(bottom: 64.0, top: 16.0),
       children: [
@@ -295,14 +297,9 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load.refNum),
 
-        // Displaying all RouteLegLocations from routeLegs
-        if (_load.route != null)
-          ..._load.route!.routeLegs
-              .expand((routeLeg) => routeLeg.locations)
-              .toList()
-              .asMap()
-              .entries
-              .map((entry) {
+        // Displaying the first route leg locations
+        if (firstRouteLeg != null)
+          ...firstRouteLeg.locations.toList().asMap().entries.map((entry) {
             int index = entry.key;
             RouteLegLocation stopLocation = entry.value;
             return Column(
@@ -332,11 +329,14 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         Divider(thickness: 1, color: Colors.grey[300]),
         _infoTile(
             label: 'Route Distance',
-            value:
-                '${metersToMiles(_load.routeDistance).toStringAsFixed(0)} miles'),
+            value: firstRouteLeg?.routeLegDistance != null
+                ? '${metersToMiles(firstRouteLeg!.routeLegDistance).toStringAsFixed(0)} miles'
+                : '0'),
         _infoTile(
             label: 'Route Duration',
-            value: secondsToReadable(_load.routeDuration)),
+            value: firstRouteLeg?.routeLegDistance != null
+                ? secondsToReadable(firstRouteLeg!.routeLegDistance)
+                : '0'),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: _buildDirectionsButton(),

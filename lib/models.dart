@@ -511,6 +511,8 @@ class RouteLeg {
   final double? endLongitude;
   final DateTime? endedAt;
   final DateTime? createdAt;
+  final double routeLegDistance;
+  final double routeLegDuration;
   final String driverInstructions;
   final RouteLegStatus status;
   final List<RouteLegLocation> locations;
@@ -528,6 +530,8 @@ class RouteLeg {
       required this.endLongitude,
       required this.endedAt,
       required this.createdAt,
+      this.routeLegDistance = 0.0,
+      this.routeLegDuration = 0.0,
       required this.driverInstructions,
       required this.status,
       required this.locations,
@@ -550,6 +554,8 @@ class RouteLeg {
       endedAt: json['endedAt'] != null ? DateTime.parse(json['endedAt']) : null,
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      routeLegDistance: json['routeLegDistance']?.toDouble() ?? 0.0,
+      routeLegDuration: json['routeLegDuration']?.toDouble() ?? 0.0,
       driverInstructions: json['driverInstructions'],
       status: RouteLegStatus.values.firstWhere(
           (e) => e.toString() == 'RouteLegStatus.${json['status']}'),
