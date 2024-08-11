@@ -334,8 +334,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
                 : '0'),
         _infoTile(
             label: 'Route Duration',
-            value: firstRouteLeg?.routeLegDistance != null
-                ? secondsToReadable(firstRouteLeg!.routeLegDistance)
+            value: firstRouteLeg?.routeLegDuration != null
+                ? secondsToReadable(firstRouteLeg!.routeLegDuration)
                 : '0'),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
