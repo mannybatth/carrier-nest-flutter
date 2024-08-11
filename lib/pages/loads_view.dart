@@ -1,7 +1,6 @@
 import 'package:carrier_nest_flutter/pages/driver_login.dart';
+import 'package:carrier_nest_flutter/rest/assignments.dart';
 import 'package:flutter/material.dart';
-import 'package:carrier_nest_flutter/rest/loads.dart';
-import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:carrier_nest_flutter/pages/load_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,16 +14,16 @@ class LoadsView extends StatefulWidget {
 }
 
 class _LoadsViewState extends State<LoadsView> {
-  Future<Map<String, dynamic>>? _loadsFuture;
+  Future<Map<String, dynamic>>? _assignmentsFuture;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
-    _fetchLoads();
+    _fetchAssignments();
   }
 
-  Future<void> _fetchLoads() async {
+  Future<void> _fetchAssignments() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? jwtToken = prefs.getString('jwtToken');
@@ -37,24 +36,12 @@ class _LoadsViewState extends State<LoadsView> {
       }
       String? driverId = prefs.getString('driverId');
 
-      _loadsFuture = Loads.getLoadsExpanded(
-        expand: 'customer,shipper,receiver',
-        sort: Sort(key: 'refNum', order: 'desc'),
+      _assignmentsFuture = Assignments.getDriverAssignments(
         limit: 10,
         offset: 0,
         driverId: driverId,
         upcomingOnly: true,
-      ).onError((error, stackTrace) {
-        setState(() {
-          _errorMessage = "$error";
-        });
-        return {'loads': [], 'metadata': {}};
-      }).catchError((error) {
-        setState(() {
-          _errorMessage = "$error";
-        });
-        return {'loads': [], 'metadata': {}};
-      });
+      );
 
       setState(() {});
     } catch (error) {
@@ -72,7 +59,7 @@ class _LoadsViewState extends State<LoadsView> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Map<String, dynamic>>(
-      future: _loadsFuture,
+      future: _assignmentsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -84,8 +71,9 @@ class _LoadsViewState extends State<LoadsView> {
                   'Error fetching loads: ${_errorMessage ?? snapshot.error}'),
             ),
           );
-        } else if (snapshot.hasData && snapshot.data!['loads'].isNotEmpty) {
-          return _buildLoadsList(snapshot.data!['loads']);
+        } else if (snapshot.hasData &&
+            snapshot.data!['assignments'].isNotEmpty) {
+          return _buildLoadsList(snapshot.data!['assignments']);
         } else {
           return const Center(
               child: Padding(
@@ -99,11 +87,13 @@ class _LoadsViewState extends State<LoadsView> {
     );
   }
 
-  Widget _buildLoadsList(List<ExpandedLoad> loads) {
+  Widget _buildLoadsList(List<DriverAssignment> assignments) {
     return ListView.builder(
-      itemCount: loads.length,
+      itemCount: assignments.length,
       itemBuilder: (context, index) {
-        ExpandedLoad load = loads[index];
+        DriverAssignment assignment = assignments[index];
+        ExpandedLoad load = assignment.load as ExpandedLoad;
+
         return GestureDetector(
           onTap: () {
             Navigator.push(

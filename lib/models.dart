@@ -554,15 +554,19 @@ class RouteLeg {
       endedAt: json['endedAt'] != null ? DateTime.parse(json['endedAt']) : null,
       createdAt:
           json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      routeLegDistance: json['routeLegDistance']?.toDouble() ?? 0.0,
-      routeLegDuration: json['routeLegDuration']?.toDouble() ?? 0.0,
+      routeLegDistance: json['routeLegDistance'] != null
+          ? double.parse(json['routeLegDistance'].toString())
+          : 0.0,
+      routeLegDuration: json['routeLegDuration'] != null
+          ? double.parse(json['routeLegDuration'].toString())
+          : 0.0,
       driverInstructions: json['driverInstructions'],
       status: RouteLegStatus.values.firstWhere(
           (e) => e.toString() == 'RouteLegStatus.${json['status']}'),
-      locations: (json['locations'] as List)
+      locations: (json['locations'] as List? ?? [])
           .map((location) => RouteLegLocation.fromJson(location))
           .toList(),
-      driverAssignments: (json['driverAssignments'] as List)
+      driverAssignments: (json['driverAssignments'] as List? ?? [])
           .map((assignment) => DriverAssignment.fromJson(assignment))
           .toList(),
       routeId: json['routeId'],
@@ -650,20 +654,40 @@ class Location {
 
 class DriverAssignment {
   final String id;
-  final Driver driver;
+  final String loadId;
+  final String driverId;
+  final String routeLegId;
   final DateTime assignedAt;
+  final Driver driver;
+  final ExpandedLoad? load;
+  final RouteLeg? routeLeg;
 
   DriverAssignment({
     required this.id,
-    required this.driver,
+    required this.loadId,
+    required this.driverId,
+    required this.routeLegId,
     required this.assignedAt,
+    required this.driver,
+    this.load,
+    this.routeLeg,
   });
 
   factory DriverAssignment.fromJson(Map<String, dynamic> json) {
     return DriverAssignment(
-      id: json['id'],
-      driver: Driver.fromJson(json['driver']),
-      assignedAt: DateTime.parse(json['assignedAt']),
+      id: json['id'] ?? '',
+      loadId: json['loadId'] ?? '',
+      driverId: json['driverId'] ?? '',
+      routeLegId: json['routeLegId'] ?? '',
+      assignedAt: json['assignedAt'] != null
+          ? DateTime.parse(json['assignedAt'])
+          : DateTime.now(),
+      driver: json['driver'] != null
+          ? Driver.fromJson(json['driver'])
+          : Driver(id: '', name: ''),
+      load: json['load'] != null ? ExpandedLoad.fromJson(json['load']) : null,
+      routeLeg:
+          json['routeLeg'] != null ? RouteLeg.fromJson(json['routeLeg']) : null,
     );
   }
 }
