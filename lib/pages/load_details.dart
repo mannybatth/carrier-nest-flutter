@@ -294,45 +294,41 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load.refNum),
-        _infoTile(
-            label: 'Shipper',
-            value: _formatLoadStopAddress(stop: _load.shipper),
-            tailingValue:
-                "${_formatDate(_load.shipper.date)}\n${_load.shipper.time}",
-            onTap: () {
-              _showAddressOptionsDialog(_formatLoadStopAddress(
-                  stop: _load.shipper, includeName: false));
-            }),
-        _expandableAdditionalInfoTile('Additional Info', _load.shipper),
-        Divider(thickness: 1, color: Colors.grey[300]),
-        ..._load.stops.asMap().entries.map((entry) {
-          int index = entry.key;
-          LoadStop stop = entry.value;
-          return Column(
-            children: [
-              _infoTile(
-                  label: 'Stop #${index + 1}',
-                  value: _formatLoadStopAddress(stop: stop),
-                  tailingValue: "${_formatDate(stop.date)}\n${stop.time}",
-                  onTap: () {
-                    _showAddressOptionsDialog(
-                        _formatLoadStopAddress(stop: stop, includeName: false));
-                  }),
-              _expandableAdditionalInfoTile('Additional Info', stop),
-              Divider(thickness: 1, color: Colors.grey[300]),
-            ],
-          );
-        }).toList(),
-        _infoTile(
-            label: 'Receiver',
-            value: _formatLoadStopAddress(stop: _load.receiver),
-            tailingValue:
-                "${_formatDate(_load.receiver.date)}\n${_load.receiver.time}",
-            onTap: () {
-              _showAddressOptionsDialog(_formatLoadStopAddress(
-                  stop: _load.receiver, includeName: false));
-            }),
-        _expandableAdditionalInfoTile('Additional Info', _load.receiver),
+
+        // Displaying all RouteLegLocations from routeLegs
+        if (_load.route != null)
+          ..._load.route!.routeLegs
+              .expand((routeLeg) => routeLeg.locations)
+              .toList()
+              .asMap()
+              .entries
+              .map((entry) {
+            int index = entry.key;
+            RouteLegLocation stopLocation = entry.value;
+            return Column(
+              children: [
+                _infoTile(
+                    label: 'Stop #${index + 1}',
+                    value: _formatAddress(
+                        stop: stopLocation.loadStop,
+                        location: stopLocation.location),
+                    tailingValue: (stopLocation.loadStop != null)
+                        ? "${_formatDate(stopLocation.loadStop!.date)}\n${stopLocation.loadStop?.time}"
+                        : "",
+                    onTap: () {
+                      _showAddressOptionsDialog(_formatAddress(
+                          stop: stopLocation.loadStop,
+                          location: stopLocation.location,
+                          includeName: false));
+                    }),
+                if (stopLocation.loadStop != null)
+                  _expandableAdditionalInfoTile(
+                      'Additional Info', stopLocation.loadStop!),
+                Divider(thickness: 1, color: Colors.grey[300]),
+              ],
+            );
+          }).toList(),
+
         Divider(thickness: 1, color: Colors.grey[300]),
         _infoTile(
             label: 'Route Distance',
@@ -455,9 +451,15 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     );
   }
 
-  String _formatLoadStopAddress(
-      {required LoadStop stop, bool includeName = true}) {
-    return "${includeName ? '${stop.name}\n' : ''}${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
+  String _formatAddress(
+      {LoadStop? stop, Location? location, bool includeName = true}) {
+    if (stop != null) {
+      return "${includeName ? '${stop.name}\n' : ''}${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
+    } else if (location != null) {
+      return "${includeName ? '${location.name}\n' : ''}${location.street}\n${location.city}, ${location.state} ${location.zip}";
+    } else {
+      return '';
+    }
   }
 
   // Method to show the bottom sheet modal
