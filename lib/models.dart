@@ -608,9 +608,7 @@ class Location {
   final String country;
   final double? latitude;
   final double? longitude;
-  final Carrier carrier;
   final String carrierId;
-  final List<RouteLegLocation> routeLegLocations;
 
   Location({
     required this.id,
@@ -624,9 +622,7 @@ class Location {
     required this.country,
     this.latitude,
     this.longitude,
-    required this.carrier,
     required this.carrierId,
-    required this.routeLegLocations,
   });
 
   factory Location.fromJson(Map<String, dynamic> json) {
@@ -642,12 +638,7 @@ class Location {
       country: json['country'],
       latitude: json['latitude']?.toDouble(),
       longitude: json['longitude']?.toDouble(),
-      carrier: Carrier.fromJson(json['carrier']),
       carrierId: json['carrierId'],
-      routeLegLocations: (json['routeLegLocations'] as List)
-          .map(
-              (routeLegLocation) => RouteLegLocation.fromJson(routeLegLocation))
-          .toList(),
     );
   }
 }
