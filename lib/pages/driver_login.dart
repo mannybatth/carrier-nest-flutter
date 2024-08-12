@@ -2,6 +2,7 @@ import 'package:carrier_nest_flutter/helpers/FadeAnimation.dart';
 import 'package:carrier_nest_flutter/pages/home.dart';
 import 'package:carrier_nest_flutter/rest/auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 class DriverLoginPage extends StatefulWidget {
@@ -26,11 +27,13 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
   void initState() {
     super.initState();
 
-    _phoneNumberController.text = '3172245337';
-    _carrierCodeController.text = 'psb150';
+    if (kDebugMode) {
+      _phoneNumberController.text = '3172245337';
+      _carrierCodeController.text = 'psb150';
 
-    // _phoneNumberController.text = '2065654638';
-    // _carrierCodeController.text = 'deepbrosinc';
+      // _phoneNumberController.text = '2065654638';
+      // _carrierCodeController.text = 'deepbrosinc';
+    }
   }
 
   @override
