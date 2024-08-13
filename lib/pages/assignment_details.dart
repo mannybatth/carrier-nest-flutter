@@ -347,8 +347,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
               ],
             );
           }).toList(),
-
-        Divider(thickness: 1, color: Colors.grey[300]),
+        _buildDriverNames(_routeLeg!.driverAssignments),
         _infoTile(
             label: 'Route Distance',
             value: _routeLeg?.routeLegDistance != null
@@ -535,6 +534,17 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
               textAlign: TextAlign.end, style: const TextStyle(fontSize: 14))
           : null,
       onTap: onTap ?? () {},
+    );
+  }
+
+  Widget _buildDriverNames(List<DriverAssignment> driverAssignments) {
+    String driverNames = driverAssignments
+        .map((assignment) => assignment.driver.name)
+        .join(', ');
+
+    return _infoTile(
+      label: 'Assigned Drivers',
+      value: driverNames,
     );
   }
 
