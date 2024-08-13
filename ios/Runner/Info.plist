@@ -46,6 +46,8 @@
     <string>Used to get the drivers location when load is completed and status is updated</string>
     <key>NSLocationWhenAlwaysUsageDescription</key>
     <string>Used to get the drivers location when load is completed and status is updated</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Used to get the drivers location when load is completed and status is updated</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow the driver to select a photo of a pod document from their library</string>
     <key>UIApplicationSupportsIndirectInputEvents</key>
