@@ -33,7 +33,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Carrier Nest'), // Made constant
+        title: const Text('Scheduled Trips'), // Made constant
       ),
       body: _getCurrentView(),
       bottomNavigationBar: BottomNavigationBar(
