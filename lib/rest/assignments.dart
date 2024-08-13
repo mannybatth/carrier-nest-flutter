@@ -68,14 +68,17 @@ class Assignments {
 
   static Future<void> updateRouteLegStatus({
     required String routeLegId,
-    required String routeLegStatus,
+    required RouteLegStatus routeLegStatus,
     double? startLatitude,
     double? startLongitude,
     double? endLatitude,
     double? endLongitude,
   }) async {
     final Map<String, dynamic> data = {
-      'routeLegStatus': routeLegStatus,
+      'routeLegStatus': routeLegStatus
+          .toString()
+          .split('.')
+          .last, // Getting the enum value as a string,
       if (startLatitude != null) 'startLatitude': startLatitude,
       if (startLongitude != null) 'startLongitude': startLongitude,
       if (endLatitude != null) 'endLatitude': endLatitude,

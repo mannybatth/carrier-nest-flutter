@@ -211,34 +211,34 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         if (status == RouteLegStatus.IN_PROGRESS) {
           await Assignments.updateRouteLegStatus(
             routeLegId: _routeLeg!.id,
-            routeLegStatus: status.toString(),
+            routeLegStatus: status,
             startLatitude: locationData.latitude,
             startLongitude: locationData.longitude,
           );
         } else if (status == RouteLegStatus.COMPLETED) {
           await Assignments.updateRouteLegStatus(
             routeLegId: _routeLeg!.id,
-            routeLegStatus: status.toString(),
+            routeLegStatus: status,
             endLatitude: locationData.latitude,
             endLongitude: locationData.longitude,
           );
         } else {
           await Assignments.updateRouteLegStatus(
             routeLegId: _routeLeg!.id,
-            routeLegStatus: status.toString(),
+            routeLegStatus: status,
           );
         }
       } else {
         await Assignments.updateRouteLegStatus(
           routeLegId: _routeLeg!.id,
-          routeLegStatus: status.toString(),
+          routeLegStatus: status,
         );
       }
 
       await _fetchAssignmentDetails();
     } catch (e) {
-      // Handle error
-      // For example: Show a dialog or a snackbar with the error message
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error updating status: $e')));
     }
     setState(() {
       _isStatusChangeLoading = false;
@@ -619,8 +619,9 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   Widget _buildBeginWorkButton() {
-    UILoadStatus currentStatus = loadStatus(_load);
-    if (currentStatus == UILoadStatus.booked) {
+    // UILoadStatus currentStatus = loadStatus(_load);
+    RouteLegStatus status = _routeLeg!.status;
+    if (status == RouteLegStatus.ASSIGNED) {
       return Expanded(
           child: ElevatedButton(
         onPressed: _isStatusChangeLoading ? null : _beginWork,
@@ -637,8 +638,9 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   Widget _buildCompleteWorkButton() {
-    UILoadStatus currentStatus = loadStatus(_load);
-    if (currentStatus == UILoadStatus.inProgress) {
+    // UILoadStatus currentStatus = loadStatus(_load);
+    RouteLegStatus status = _routeLeg!.status;
+    if (status == RouteLegStatus.IN_PROGRESS) {
       return Expanded(
         child: ElevatedButton(
           onPressed: _isStatusChangeLoading ? null : _completeWork,
@@ -658,8 +660,10 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
 
   Widget _buildFilePickerButton() {
     UILoadStatus currentStatus = loadStatus(_load);
-    if (currentStatus == UILoadStatus.delivered ||
-        currentStatus == UILoadStatus.podReady) {
+    RouteLegStatus status = _routeLeg!.status;
+    if (status == RouteLegStatus.COMPLETED &&
+        (currentStatus == UILoadStatus.inProgress ||
+            currentStatus == UILoadStatus.delivered)) {
       return Expanded(
         child: ElevatedButton.icon(
           onPressed: _isStatusChangeLoading || _isUploadingPod
@@ -721,17 +725,19 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   Widget _buildMenuButton() {
-    UILoadStatus currentStatus = loadStatus(_load);
+    // UILoadStatus currentStatus = loadStatus(_load);
+    RouteLegStatus status = _routeLeg!.status;
     if (!_dropOffDatePassed &&
-        (currentStatus == UILoadStatus.inProgress ||
-            currentStatus == UILoadStatus.delivered)) {
+        (status == RouteLegStatus.IN_PROGRESS ||
+            status == RouteLegStatus.COMPLETED)) {
       return PopupMenuButton<MenuOptions>(
         onSelected: _handleMenuOption,
         itemBuilder: (BuildContext context) {
           List<PopupMenuEntry<MenuOptions>> menuItems = [];
-          UILoadStatus currentStatus = loadStatus(_load);
+          // UILoadStatus currentStatus = loadStatus(_load);
+          RouteLegStatus status = _routeLeg!.status;
 
-          if (currentStatus == UILoadStatus.inProgress) {
+          if (status == RouteLegStatus.IN_PROGRESS) {
             menuItems.add(
               const PopupMenuItem<MenuOptions>(
                 value: MenuOptions.notInProgress,
@@ -739,7 +745,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
               ),
             );
           }
-          if (currentStatus == UILoadStatus.delivered) {
+          if (status == RouteLegStatus.COMPLETED) {
             menuItems.add(
               const PopupMenuItem<MenuOptions>(
                 value: MenuOptions.notDelivered,
@@ -754,6 +760,39 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     } else {
       return Container(); // Return an empty container if the condition is not met
     }
+    // UILoadStatus currentStatus = loadStatus(_load);
+    // if (!_dropOffDatePassed &&
+    //     (currentStatus == UILoadStatus.inProgress ||
+    //         currentStatus == UILoadStatus.delivered)) {
+    //   return PopupMenuButton<MenuOptions>(
+    //     onSelected: _handleMenuOption,
+    //     itemBuilder: (BuildContext context) {
+    //       List<PopupMenuEntry<MenuOptions>> menuItems = [];
+    //       UILoadStatus currentStatus = loadStatus(_load);
+
+    //       if (currentStatus == UILoadStatus.inProgress) {
+    //         menuItems.add(
+    //           const PopupMenuItem<MenuOptions>(
+    //             value: MenuOptions.notInProgress,
+    //             child: Text('Change to Not In Progress'),
+    //           ),
+    //         );
+    //       }
+    //       if (currentStatus == UILoadStatus.delivered) {
+    //         menuItems.add(
+    //           const PopupMenuItem<MenuOptions>(
+    //             value: MenuOptions.notDelivered,
+    //             child: Text('Change to Not Delivered'),
+    //           ),
+    //         );
+    //       }
+
+    //       return menuItems;
+    //     },
+    //   );
+    // } else {
+    //   return Container(); // Return an empty container if the condition is not met
+    // }
   }
 
   Widget _buildErrorView() {

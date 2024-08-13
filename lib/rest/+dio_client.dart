@@ -59,12 +59,13 @@ class DioClient {
 
   // Method to navigate to the driver login page
   void navigateToDriverLoginPage() {
-    clearCookies().then((value) => clearPreferences()).then((value) => {
-          navigatorKey.currentState?.pushReplacement(MaterialPageRoute(
-            builder: (context) =>
-                const DriverLoginPage(), // Replace with your login page widget
-          ))
-        });
+    clearCookies().then((value) => clearPreferences()).then((value) {
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const DriverLoginPage()),
+        (Route<dynamic> route) =>
+            false, // This removes all the routes until it gets to the login page
+      );
+    });
   }
 
   Future<void> clearCookies() async {
