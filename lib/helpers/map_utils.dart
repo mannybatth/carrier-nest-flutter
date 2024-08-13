@@ -52,30 +52,27 @@ class MapUtils {
   }
 
   static void openRoute(RouteLeg routeLeg) async {
-    // Get all RouteLegLocations from the firstLeg
-    final List<RouteLegLocation> firstLegLocations = routeLeg.locations;
+    final List<RouteLegLocation> legLocations = routeLeg.locations;
 
-    // Extract origin from the first RouteLeg's first location
-    final RouteLegLocation originLegLocation = firstLegLocations.first;
+    // Extract origin
+    final RouteLegLocation originLegLocation = legLocations.first;
     final originLatitude = originLegLocation.loadStop?.latitude ??
         originLegLocation.location?.latitude;
     final originLongitude = originLegLocation.loadStop?.longitude ??
         originLegLocation.location?.longitude;
     final origin = '$originLatitude,$originLongitude';
 
-    // Extract destination from the firstLeg's last location
-    final RouteLegLocation destinationLegLocation = firstLegLocations.last;
+    // Extract destination
+    final RouteLegLocation destinationLegLocation = legLocations.last;
     final destinationLatitude = destinationLegLocation.loadStop?.latitude ??
         destinationLegLocation.location?.latitude;
     final destinationLongitude = destinationLegLocation.loadStop?.longitude ??
         destinationLegLocation.location?.longitude;
     final destination = '$destinationLatitude,$destinationLongitude';
 
-    // Extract waypoints from the intermediate RouteLegLocations in the firstLeg, skipping the first and last locations
-    final waypoints = firstLegLocations
-        .skip(1)
-        .take(firstLegLocations.length - 2)
-        .map((location) {
+    // Extract waypoints, skipping the first and last locations
+    final waypoints =
+        legLocations.skip(1).take(legLocations.length - 2).map((location) {
       final lat = location.loadStop?.latitude ?? location.location?.latitude;
       final long = location.loadStop?.longitude ?? location.location?.longitude;
       return '$lat,$long';
