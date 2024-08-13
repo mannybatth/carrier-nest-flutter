@@ -37,7 +37,7 @@ class MapUtils {
     await _launchUri(googleMapsWebUri);
   }
 
-  static void openRoute(ExpandedLoad load) async {
+  static void openRouteFromLoad(ExpandedLoad load) async {
     // Check if load.route is null, routeLegs is empty, or first routeLeg has fewer than two locations
     if (load.route == null ||
         load.route!.routeLegs.isEmpty ||
@@ -48,9 +48,12 @@ class MapUtils {
 
     // Get the first route leg
     final RouteLeg firstLeg = load.route!.routeLegs.first;
+    openRoute(firstLeg);
+  }
 
+  static void openRoute(RouteLeg routeLeg) async {
     // Get all RouteLegLocations from the firstLeg
-    final List<RouteLegLocation> firstLegLocations = firstLeg.locations;
+    final List<RouteLegLocation> firstLegLocations = routeLeg.locations;
 
     // Extract origin from the first RouteLeg's first location
     final RouteLegLocation originLegLocation = firstLegLocations.first;

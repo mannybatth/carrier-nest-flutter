@@ -34,7 +34,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   bool _isUploadingPod = false;
   bool _isDeletingDocument = false;
 
-  late ExpandedLoad _load;
+  late ExpandedLoad? _load;
   late RouteLeg? _routeLeg;
   late String _driverId;
   bool _dropOffDatePassed = false;
@@ -81,7 +81,11 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   void _getRouteDirections() {
-    MapUtils.openRoute(_load);
+    if (_routeLeg != null) {
+      MapUtils.openRoute(_routeLeg!);
+    } else if (_load != null) {
+      MapUtils.openRouteFromLoad(_load!);
+    }
   }
 
   Future<void> _uploadFile(PlatformFile file) async {
@@ -102,7 +106,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       });
       final longitude = locationData?.longitude;
       final latitude = locationData?.latitude;
-      await Loads.addLoadDocumentToLoad(_load.id, simpleDoc,
+      await Loads.addLoadDocumentToLoad(_load!.id, simpleDoc,
           driverId: _driverId,
           isPod: true,
           longitude: longitude,
@@ -157,7 +161,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       _isDeletingDocument = true; // Disable the list selection
     });
     try {
-      await Loads.deleteLoadDocumentFromLoad(_load.id, id, query: {
+      await Loads.deleteLoadDocumentFromLoad(_load!.id, id, query: {
         'driverId': _driverId,
         'isPod': true,
       });
@@ -277,7 +281,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_isLoading == false && _errorMessage == null
-            ? _load.customer.name
+            ? _load!.customer.name
             : ''),
       ),
       body: _isLoading
@@ -313,7 +317,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           ),
         ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
-        _infoTile(label: 'Ref Num', value: _load.refNum),
+        _infoTile(label: 'Ref Num', value: _load!.refNum),
 
         // Displaying the first route leg locations
         if (_routeLeg != null)
@@ -535,10 +539,10 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   List<Widget> _generateDocumentListItems() {
-    return List.generate(_load.podDocuments.length, (int index) {
+    return List.generate(_load!.podDocuments.length, (int index) {
       bool isFirst = index == 0;
-      bool isLast = index == _load.podDocuments.length - 1;
-      bool isOnly = _load.podDocuments.length == 1;
+      bool isLast = index == _load!.podDocuments.length - 1;
+      bool isOnly = _load!.podDocuments.length == 1;
 
       BorderSide borderSide = BorderSide(color: Colors.grey[300]!, width: 1);
       BorderSide zeroBorderSide =
@@ -576,7 +580,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           contentPadding: const EdgeInsets.only(left: 12.0, right: 8.0),
           leading: const Icon(Icons.attach_file, color: Colors.grey),
           title: Text(
-            _load.podDocuments[index].fileName,
+            _load!.podDocuments[index].fileName,
             overflow: TextOverflow.ellipsis,
           ),
           trailing: IconButton(
@@ -588,7 +592,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                     bool confirmDelete =
                         await showDeleteConfirmationDialog(context);
                     if (confirmDelete) {
-                      deleteLoadDocument(_load.podDocuments[index].id!);
+                      deleteLoadDocument(_load!.podDocuments[index].id!);
                     }
                   },
           ),
@@ -596,7 +600,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
               ? null
               : () async {
                   // Implement logic to open document
-                  final url = _load.podDocuments[index].fileUrl;
+                  final url = _load!.podDocuments[index].fileUrl;
                   try {
                     await launchUrl(Uri.parse(url));
                   } catch (e) {
@@ -659,7 +663,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   Widget _buildFilePickerButton() {
-    UILoadStatus currentStatus = loadStatus(_load);
+    UILoadStatus currentStatus = loadStatus(_load!);
     RouteLegStatus status = _routeLeg!.status;
     if (status == RouteLegStatus.COMPLETED &&
         (currentStatus == UILoadStatus.inProgress ||
