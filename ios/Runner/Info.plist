@@ -42,7 +42,7 @@
     </dict>
     <key>NSCameraUsageDescription</key>
     <string>Allow the drive to take a picture of a pod document directly from camera</string>
-    <key>NSLocationWhenInUseUsageDescription</key>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Used to get the drivers location when load is completed and status is updated</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow the driver to select a photo of a pod document from their library</string>

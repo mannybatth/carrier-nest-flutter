@@ -1,4 +1,4 @@
-import 'package:carrier_nest_flutter/pages/load_details.dart';
+import 'package:carrier_nest_flutter/pages/assignment_details.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:carrier_nest_flutter/pages/home.dart';
@@ -61,15 +61,14 @@ class _MyAppState extends State<MyApp> {
     // Handle the deep link here
     print('Received URI: $uri');
 
-    // Extract the loadId directly from the path
     // Example URI: https://carriernest.com/l/clzqij1vz000gguwks78yv44g?did=clzqimq7l001gguwkmtvhy7us
     if (uri.pathSegments.isNotEmpty && uri.pathSegments[0] == 'l') {
-      String loadId = uri.pathSegments[1];
+      String assignmentId = uri.pathSegments[1];
 
-      // Navigate to LoadDetailsPage with the loadId
       navigatorKey.currentState?.push(
         MaterialPageRoute(
-          builder: (context) => LoadDetailsPage(loadId: loadId),
+          builder: (context) =>
+              AssignmentDetailsPage(assignmentId: assignmentId),
         ),
       );
     }

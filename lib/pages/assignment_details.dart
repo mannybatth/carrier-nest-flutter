@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:carrier_nest_flutter/helpers/map_utils.dart';
+import 'package:carrier_nest_flutter/rest/assignments.dart';
 import 'package:carrier_nest_flutter/rest/pod_upload.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
@@ -17,22 +18,24 @@ import 'package:url_launcher/url_launcher.dart';
 
 enum MenuOptions { notInProgress, notDelivered }
 
-class LoadDetailsPage extends StatefulWidget {
-  final String loadId;
+class AssignmentDetailsPage extends StatefulWidget {
+  final String assignmentId;
 
-  const LoadDetailsPage({Key? key, required this.loadId}) : super(key: key);
+  const AssignmentDetailsPage({Key? key, required this.assignmentId})
+      : super(key: key);
 
   @override
-  _LoadDetailsPageState createState() => _LoadDetailsPageState();
+  _AssignmentDetailsPageState createState() => _AssignmentDetailsPageState();
 }
 
-class _LoadDetailsPageState extends State<LoadDetailsPage> {
+class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   bool _isLoading = true;
   bool _isStatusChangeLoading = false;
   bool _isUploadingPod = false;
   bool _isDeletingDocument = false;
 
   late ExpandedLoad _load;
+  late RouteLeg? _routeLeg;
   late String _driverId;
   bool _dropOffDatePassed = false;
   String? _errorMessage;
@@ -41,7 +44,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   void initState() {
     super.initState();
     _fetchDriverId();
-    _fetchLoadDetails();
+    _fetchAssignmentDetails();
   }
 
   void _fetchDriverId() async {
@@ -51,11 +54,16 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
     });
   }
 
-  Future<void> _fetchLoadDetails() async {
+  Future<void> _fetchAssignmentDetails() async {
     try {
-      ExpandedLoad load = await Loads.getLoadById(widget.loadId);
+      DriverAssignment assignment = await Assignments.getAssignmentById(
+          assignmentId: widget.assignmentId);
+      ExpandedLoad load = assignment.load!;
+      RouteLeg routeLeg = assignment.routeLeg!;
+
       setState(() {
         _load = load;
+        _routeLeg = routeLeg;
         _dropOffDatePassed = isDate24HrInThePast(load.receiver.date);
         _isLoading = false;
         _errorMessage = null;
@@ -100,7 +108,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
           longitude: longitude,
           latitude: latitude);
 
-      await _fetchLoadDetails();
+      await _fetchAssignmentDetails();
 
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Document uploaded successfully')));
@@ -153,7 +161,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         'driverId': _driverId,
         'isPod': true,
       });
-      await _fetchLoadDetails();
+      await _fetchAssignmentDetails();
       ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Document deleted successfully')));
     } catch (e) {
@@ -192,7 +200,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         false; // If dialog is dismissed by tapping outside, return false
   }
 
-  Future<void> _updateLoadStatus(LoadStatus status) async {
+  Future<void> _updateRouteLegStatus(RouteLegStatus status) async {
     setState(() {
       _isStatusChangeLoading = true;
     });
@@ -200,22 +208,34 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
       var locationData = await LocationUtils.getDeviceLocation();
 
       if (locationData != null) {
-        await Loads.updateLoadStatus(
-          loadId: widget.loadId,
-          status: status,
-          driverId: _driverId,
-          longitude: locationData.longitude,
-          latitude: locationData.latitude,
-        );
+        if (status == RouteLegStatus.IN_PROGRESS) {
+          await Assignments.updateRouteLegStatus(
+            routeLegId: _routeLeg!.id,
+            routeLegStatus: status.toString(),
+            startLatitude: locationData.latitude,
+            startLongitude: locationData.longitude,
+          );
+        } else if (status == RouteLegStatus.COMPLETED) {
+          await Assignments.updateRouteLegStatus(
+            routeLegId: _routeLeg!.id,
+            routeLegStatus: status.toString(),
+            endLatitude: locationData.latitude,
+            endLongitude: locationData.longitude,
+          );
+        } else {
+          await Assignments.updateRouteLegStatus(
+            routeLegId: _routeLeg!.id,
+            routeLegStatus: status.toString(),
+          );
+        }
       } else {
-        await Loads.updateLoadStatus(
-          loadId: widget.loadId,
-          status: status,
-          driverId: _driverId,
+        await Assignments.updateRouteLegStatus(
+          routeLegId: _routeLeg!.id,
+          routeLegStatus: status.toString(),
         );
       }
 
-      await _fetchLoadDetails();
+      await _fetchAssignmentDetails();
     } catch (e) {
       // Handle error
       // For example: Show a dialog or a snackbar with the error message
@@ -226,15 +246,15 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Future<void> _stopWork() {
-    return _updateLoadStatus(LoadStatus.CREATED);
+    return _updateRouteLegStatus(RouteLegStatus.ASSIGNED);
   }
 
   Future<void> _beginWork() {
-    return _updateLoadStatus(LoadStatus.IN_PROGRESS);
+    return _updateRouteLegStatus(RouteLegStatus.IN_PROGRESS);
   }
 
   Future<void> _completeWork() {
-    return _updateLoadStatus(LoadStatus.DELIVERED);
+    return _updateRouteLegStatus(RouteLegStatus.COMPLETED);
   }
 
   void _handleMenuOption(MenuOptions option) {
@@ -269,8 +289,6 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
   }
 
   Widget _buildLoadDetails() {
-    final firstRouteLeg = _load.route?.routeLegs.first;
-
     return ListView(
       padding: const EdgeInsets.only(bottom: 64.0, top: 16.0),
       children: [
@@ -298,8 +316,8 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         _infoTile(label: 'Ref Num', value: _load.refNum),
 
         // Displaying the first route leg locations
-        if (firstRouteLeg != null)
-          ...firstRouteLeg.locations.toList().asMap().entries.map((entry) {
+        if (_routeLeg != null)
+          ..._routeLeg!.locations.toList().asMap().entries.map((entry) {
             int index = entry.key;
             RouteLegLocation stopLocation = entry.value;
             return Column(
@@ -329,13 +347,13 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
         Divider(thickness: 1, color: Colors.grey[300]),
         _infoTile(
             label: 'Route Distance',
-            value: firstRouteLeg?.routeLegDistance != null
-                ? '${metersToMiles(firstRouteLeg!.routeLegDistance).toStringAsFixed(0)} miles'
+            value: _routeLeg?.routeLegDistance != null
+                ? '${metersToMiles(_routeLeg!.routeLegDistance).toStringAsFixed(0)} miles'
                 : '0'),
         _infoTile(
             label: 'Route Duration',
-            value: firstRouteLeg?.routeLegDuration != null
-                ? secondsToReadable(firstRouteLeg!.routeLegDuration)
+            value: _routeLeg?.routeLegDuration != null
+                ? secondsToReadable(_routeLeg!.routeLegDuration)
                 : '0'),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
@@ -740,7 +758,7 @@ class _LoadDetailsPageState extends State<LoadDetailsPage> {
 
   Widget _buildErrorView() {
     return GestureDetector(
-      onTap: _fetchLoadDetails,
+      onTap: _fetchAssignmentDetails,
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

@@ -1,8 +1,8 @@
+import 'package:carrier_nest_flutter/pages/assignment_details.dart';
 import 'package:carrier_nest_flutter/pages/driver_login.dart';
 import 'package:carrier_nest_flutter/rest/assignments.dart';
 import 'package:flutter/material.dart';
 import 'package:carrier_nest_flutter/models.dart';
-import 'package:carrier_nest_flutter/pages/load_details.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
@@ -99,7 +99,8 @@ class _LoadsViewState extends State<LoadsView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => LoadDetailsPage(loadId: load.id),
+                builder: (context) =>
+                    AssignmentDetailsPage(assignmentId: assignment.id),
               ),
             );
           },

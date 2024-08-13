@@ -44,4 +44,58 @@ class Assignments {
       throw Exception('Failed to load data');
     }
   }
+
+  static Future<DriverAssignment> getAssignmentById({
+    required String assignmentId,
+  }) async {
+    final response = await DioClient().dio.get<Map<String, dynamic>>(
+          '$apiUrl/assignment/$assignmentId',
+        );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> errors =
+          response.data?['errors'] ?? []; // Assuming errors are a list
+
+      if (errors.isNotEmpty) {
+        throw Exception(errors.map((e) => e.toString()).join(', '));
+      }
+
+      return DriverAssignment.fromJson(response.data?['data']);
+    } else {
+      throw Exception('Failed to load assignment');
+    }
+  }
+
+  static Future<void> updateRouteLegStatus({
+    required String routeLegId,
+    required String routeLegStatus,
+    double? startLatitude,
+    double? startLongitude,
+    double? endLatitude,
+    double? endLongitude,
+  }) async {
+    final Map<String, dynamic> data = {
+      'routeLegStatus': routeLegStatus,
+      if (startLatitude != null) 'startLatitude': startLatitude,
+      if (startLongitude != null) 'startLongitude': startLongitude,
+      if (endLatitude != null) 'endLatitude': endLatitude,
+      if (endLongitude != null) 'endLongitude': endLongitude,
+    };
+
+    final response = await DioClient().dio.patch<Map<String, dynamic>>(
+          '$apiUrl/route-leg/$routeLegId',
+          data: data,
+        );
+
+    if (response.statusCode != 200) {
+      final List<dynamic> errors =
+          response.data?['errors'] ?? []; // Assuming errors are a list
+
+      if (errors.isNotEmpty) {
+        throw Exception(errors.map((e) => e.toString()).join(', '));
+      }
+
+      throw Exception('Failed to update route leg status');
+    }
+  }
 }
