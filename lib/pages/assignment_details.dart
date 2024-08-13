@@ -318,6 +318,10 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load!.refNum),
+        _infoTile(
+            label: 'Scheduled For',
+            value:
+                '${_formatDate(_routeLeg!.scheduledDate!)} at ${_routeLeg!.scheduledTime}'),
 
         // Displaying the first route leg locations
         if (_routeLeg != null)
