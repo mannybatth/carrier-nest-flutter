@@ -230,6 +230,8 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           await Assignments.updateRouteLegStatus(
             routeLegId: _routeLeg!.id,
             routeLegStatus: status,
+            activityLatitude: locationData.latitude,
+            activityLongitude: locationData.longitude,
           );
         }
       } else {

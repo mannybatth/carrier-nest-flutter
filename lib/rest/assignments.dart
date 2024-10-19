@@ -73,6 +73,8 @@ class Assignments {
     double? startLongitude,
     double? endLatitude,
     double? endLongitude,
+    double? activityLatitude,
+    double? activityLongitude,
   }) async {
     final Map<String, dynamic> data = {
       'routeLegStatus': routeLegStatus
@@ -83,6 +85,8 @@ class Assignments {
       if (startLongitude != null) 'startLongitude': startLongitude,
       if (endLatitude != null) 'endLatitude': endLatitude,
       if (endLongitude != null) 'endLongitude': endLongitude,
+      if (activityLatitude != null) 'latitude': activityLatitude,
+      if (activityLongitude != null) 'longitude': activityLongitude,
     };
 
     final response = await DioClient().dio.patch<Map<String, dynamic>>(
