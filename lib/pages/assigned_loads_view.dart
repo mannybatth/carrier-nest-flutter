@@ -1,4 +1,5 @@
 import 'package:carrier_nest_flutter/components/assignment_card.dart';
+import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/pages/assignment_details.dart';
 import 'package:carrier_nest_flutter/pages/driver_login.dart';
 import 'package:carrier_nest_flutter/rest/assignments.dart';
@@ -6,14 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoadsView extends StatefulWidget {
-  const LoadsView({super.key});
+class AssignedLoadsView extends StatefulWidget {
+  const AssignedLoadsView({super.key});
 
   @override
-  _LoadsViewState createState() => _LoadsViewState();
+  _AssignedLoadsViewState createState() => _AssignedLoadsViewState();
 }
 
-class _LoadsViewState extends State<LoadsView> {
+class _AssignedLoadsViewState extends State<AssignedLoadsView> {
   Future<Map<String, dynamic>>? _assignmentsFuture;
   String? _errorMessage;
 
@@ -40,7 +41,11 @@ class _LoadsViewState extends State<LoadsView> {
         limit: 10,
         offset: 0,
         driverId: driverId,
-        upcomingOnly: true,
+        assignedOnly: true,
+        sort: Sort(
+          key: 'assignedAt',
+          order: 'desc',
+        ),
       );
 
       setState(() {});
@@ -75,7 +80,7 @@ class _LoadsViewState extends State<LoadsView> {
               child: Padding(
             padding: EdgeInsets.all(8.0),
             child: Text(
-              'No loads found',
+              'No loads assigned',
             ),
           ));
         }

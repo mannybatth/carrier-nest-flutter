@@ -8,7 +8,8 @@ class Assignments {
     String? driverId,
     int? limit,
     int? offset,
-    bool? upcomingOnly,
+    bool? assignedOnly,
+    bool? completedOnly,
   }) async {
     final Map<String, String> params = {
       if (sort?.key != null) 'sortBy': sort!.key!,
@@ -16,7 +17,8 @@ class Assignments {
       if (driverId != null) 'driverId': driverId,
       if (limit != null) 'limit': limit.toString(),
       if (offset != null) 'offset': offset.toString(),
-      if (upcomingOnly != null) 'upcomingOnly': upcomingOnly ? '1' : '0',
+      if (assignedOnly != null) 'assignedOnly': assignedOnly ? '1' : '0',
+      if (completedOnly != null) 'completedOnly': completedOnly ? '1' : '0',
     };
 
     final response = await DioClient().dio.get<Map<String, dynamic>>(

@@ -1,5 +1,6 @@
+import 'package:carrier_nest_flutter/pages/history_view.dart';
 import 'package:flutter/material.dart';
-import 'package:carrier_nest_flutter/pages/loads_view.dart';
+import 'package:carrier_nest_flutter/pages/assigned_loads_view.dart';
 import 'package:carrier_nest_flutter/pages/settings_view.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -21,11 +22,13 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget _getCurrentView() {
     switch (_currentIndex) {
       case 0:
-        return const LoadsView();
+        return const AssignedLoadsView();
       case 1:
+        return const HistoryView();
+      case 2:
         return const SettingsView();
       default:
-        return const LoadsView();
+        return const AssignedLoadsView();
     }
   }
 
@@ -33,7 +36,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Scheduled Trips'), // Made constant
+        title: Text(_currentIndex == 0
+            ? 'Assigned Loads'
+            : _currentIndex == 1
+                ? 'History'
+                : 'Settings'),
       ),
       body: _getCurrentView(),
       bottomNavigationBar: BottomNavigationBar(
@@ -42,7 +49,11 @@ class _MyHomePageState extends State<MyHomePage> {
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.local_shipping),
-            label: 'Loads',
+            label: 'Assigned',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.local_shipping),
+            label: 'History',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
