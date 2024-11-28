@@ -67,8 +67,7 @@ class _MyAppState extends State<MyApp> {
 
       navigatorKey.currentState?.push(
         MaterialPageRoute(
-          builder: (context) =>
-              AssignmentDetailsPage(assignmentId: assignmentId),
+          builder: (context) => AssignmentDetailsPage(assignmentId: assignmentId),
         ),
       );
     }

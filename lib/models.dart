@@ -95,12 +95,8 @@ class Load {
         receiverId = json['receiverId'],
         rate = double.parse(json['rate'].toString()),
         routeEncoded = json['routeEncoded'] as String?,
-        routeDistance = json['routeDistance'] != null
-            ? double.parse(json['routeDistance'].toString())
-            : null,
-        routeDuration = json['routeDuration'] != null
-            ? double.parse(json['routeDuration'].toString())
-            : null,
+        routeDistance = json['routeDistance'] != null ? double.parse(json['routeDistance'].toString()) : null,
+        routeDuration = json['routeDuration'] != null ? double.parse(json['routeDuration'].toString()) : null,
         status = LoadStatus.values.byName(json['status']);
 }
 
@@ -145,9 +141,7 @@ class LoadStop {
 
   LoadStop.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
         userId = json['userId'],
         type = LoadStopType.values.byName(json['type']),
         name = json['name'],
@@ -185,12 +179,8 @@ class Customer {
   });
   Customer.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         name = json['name'],
         contactEmail = json['contactEmail'],
         billingEmail = json['billingEmail'],
@@ -213,12 +203,8 @@ class Carrier {
   });
   Carrier.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         email = json['email'],
         name = json['name'];
 }
@@ -241,12 +227,8 @@ class Driver {
   });
   Driver.fromJson(Map<String, dynamic> json)
       : id = json['id'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         name = json['name'],
         email = json['email'],
         phone = json['phone'];
@@ -277,12 +259,8 @@ class LoadDocument {
   LoadDocument.fromJson(Map<String, dynamic> json)
       : id = json['id'],
         driverId = json['driverId'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         fileKey = json['fileKey'],
         fileUrl = json['fileUrl'],
         fileName = json['fileName'],
@@ -364,26 +342,14 @@ class Invoice {
         userId = json['userId'] as String?,
         carrierId = json['carrierId'] as String?,
         loadId = json['loadId'] as String?,
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         invoiceNum = json['invoiceNum'],
         status = InvoiceStatus.values.byName(json['status']),
-        totalAmount = json['totalAmount'] != null
-            ? double.parse(json['totalAmount'].toString())
-            : 0.0,
-        remainingAmount = json['remainingAmount'] != null
-            ? double.parse(json['remainingAmount'].toString())
-            : 0.0,
-        invoicedAt = json['invoicedAt'] != null
-            ? DateTime.parse(json['invoicedAt'])
-            : null, // Adjusted here
-        dueDate = json['dueDate'] != null
-            ? DateTime.parse(json['dueDate'])
-            : null, // Adjusted here
+        totalAmount = json['totalAmount'] != null ? double.parse(json['totalAmount'].toString()) : 0.0,
+        remainingAmount = json['remainingAmount'] != null ? double.parse(json['remainingAmount'].toString()) : 0.0,
+        invoicedAt = json['invoicedAt'] != null ? DateTime.parse(json['invoicedAt']) : null, // Adjusted here
+        dueDate = json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null, // Adjusted here
         dueNetDays = json['dueNetDays'];
 }
 
@@ -442,43 +408,24 @@ class ExpandedLoad {
         userId = json['userId'],
         customerId = json['customerId'],
         carrierId = json['carrierId'],
-        createdAt = json['createdAt'] != null
-            ? DateTime.parse(json['createdAt'])
-            : null,
-        updatedAt = json['updatedAt'] != null
-            ? DateTime.parse(json['updatedAt'])
-            : null,
+        createdAt = json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+        updatedAt = json['updatedAt'] != null ? DateTime.parse(json['updatedAt']) : null,
         refNum = json['refNum'],
         shipperId = json['shipperId'],
         receiverId = json['receiverId'],
         routeEncoded = json['routeEncoded'],
-        routeDistance = json['routeDistance'] != null
-            ? double.parse(json['routeDistance'].toString())
-            : 0.0,
-        routeDuration = json['routeDuration'] != null
-            ? double.parse(json['routeDuration'].toString())
-            : 0.0,
+        routeDistance = json['routeDistance'] != null ? double.parse(json['routeDistance'].toString()) : 0.0,
+        routeDuration = json['routeDuration'] != null ? double.parse(json['routeDuration'].toString()) : 0.0,
         status = LoadStatus.values.byName(json['status']),
         customer = Customer.fromJson(json['customer']),
-        invoice =
-            json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null,
+        invoice = json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null,
         shipper = LoadStop.fromJson(json['shipper']),
         receiver = LoadStop.fromJson(json['receiver']),
-        stops = (json['stops'] as List? ?? [])
-            .map((item) => LoadStop.fromJson(item))
-            .toList(),
-        drivers = (json['drivers'] as List? ?? [])
-            .map((item) => Driver.fromJson(item))
-            .toList(),
-        loadDocuments = (json['loadDocuments'] as List? ?? [])
-            .map((item) => LoadDocument.fromJson(item))
-            .toList(),
-        rateconDocument = json['rateconDocument'] != null
-            ? LoadDocument.fromJson(json['rateconDocument'])
-            : null,
-        podDocuments = (json['podDocuments'] as List? ?? [])
-            .map((item) => LoadDocument.fromJson(item))
-            .toList(),
+        stops = (json['stops'] as List? ?? []).map((item) => LoadStop.fromJson(item)).toList(),
+        drivers = (json['drivers'] as List? ?? []).map((item) => Driver.fromJson(item)).toList(),
+        loadDocuments = (json['loadDocuments'] as List? ?? []).map((item) => LoadDocument.fromJson(item)).toList(),
+        rateconDocument = json['rateconDocument'] != null ? LoadDocument.fromJson(json['rateconDocument']) : null,
+        podDocuments = (json['podDocuments'] as List? ?? []).map((item) => LoadDocument.fromJson(item)).toList(),
         route = json['route'] != null ? Route.fromJson(json['route']) : null;
 }
 
@@ -493,9 +440,7 @@ class Route {
     return Route(
       id: json['id'],
       loadId: json['loadId'],
-      routeLegs: (json['routeLegs'] as List)
-          .map((routeLeg) => RouteLeg.fromJson(routeLeg))
-          .toList(),
+      routeLegs: (json['routeLegs'] as List).map((routeLeg) => RouteLeg.fromJson(routeLeg)).toList(),
     );
   }
 }
@@ -541,34 +486,21 @@ class RouteLeg {
   factory RouteLeg.fromJson(Map<String, dynamic> json) {
     return RouteLeg(
       id: json['id'],
-      scheduledDate: json['scheduledDate'] != null
-          ? DateTime.parse(json['scheduledDate'])
-          : null,
+      scheduledDate: json['scheduledDate'] != null ? DateTime.parse(json['scheduledDate']) : null,
       scheduledTime: json['scheduledTime'],
       startLatitude: json['startLatitude']?.toDouble(),
       startLongitude: json['startLongitude']?.toDouble(),
-      startedAt:
-          json['startedAt'] != null ? DateTime.parse(json['startedAt']) : null,
+      startedAt: json['startedAt'] != null ? DateTime.parse(json['startedAt']) : null,
       endLatitude: json['endLatitude']?.toDouble(),
       endLongitude: json['endLongitude']?.toDouble(),
       endedAt: json['endedAt'] != null ? DateTime.parse(json['endedAt']) : null,
-      createdAt:
-          json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      routeLegDistance: json['routeLegDistance'] != null
-          ? double.parse(json['routeLegDistance'].toString())
-          : 0.0,
-      routeLegDuration: json['routeLegDuration'] != null
-          ? double.parse(json['routeLegDuration'].toString())
-          : 0.0,
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      routeLegDistance: json['routeLegDistance'] != null ? double.parse(json['routeLegDistance'].toString()) : 0.0,
+      routeLegDuration: json['routeLegDuration'] != null ? double.parse(json['routeLegDuration'].toString()) : 0.0,
       driverInstructions: json['driverInstructions'],
-      status: RouteLegStatus.values.firstWhere(
-          (e) => e.toString() == 'RouteLegStatus.${json['status']}'),
-      locations: (json['locations'] as List? ?? [])
-          .map((location) => RouteLegLocation.fromJson(location))
-          .toList(),
-      driverAssignments: (json['driverAssignments'] as List? ?? [])
-          .map((assignment) => DriverAssignment.fromJson(assignment))
-          .toList(),
+      status: RouteLegStatus.values.firstWhere((e) => e.toString() == 'RouteLegStatus.${json['status']}'),
+      locations: (json['locations'] as List? ?? []).map((location) => RouteLegLocation.fromJson(location)).toList(),
+      driverAssignments: (json['driverAssignments'] as List? ?? []).map((assignment) => DriverAssignment.fromJson(assignment)).toList(),
       routeId: json['routeId'],
     );
   }
@@ -588,10 +520,8 @@ class RouteLegLocation {
   factory RouteLegLocation.fromJson(Map<String, dynamic> json) {
     return RouteLegLocation(
       id: json['id'],
-      loadStop:
-          json['loadStop'] != null ? LoadStop.fromJson(json['loadStop']) : null,
-      location:
-          json['location'] != null ? Location.fromJson(json['location']) : null,
+      loadStop: json['loadStop'] != null ? LoadStop.fromJson(json['loadStop']) : null,
+      location: json['location'] != null ? Location.fromJson(json['location']) : null,
     );
   }
 }
@@ -670,15 +600,10 @@ class DriverAssignment {
       loadId: json['loadId'] ?? '',
       driverId: json['driverId'] ?? '',
       routeLegId: json['routeLegId'] ?? '',
-      assignedAt: json['assignedAt'] != null
-          ? DateTime.parse(json['assignedAt'])
-          : DateTime.now(),
-      driver: json['driver'] != null
-          ? Driver.fromJson(json['driver'])
-          : Driver(id: '', name: ''),
+      assignedAt: json['assignedAt'] != null ? DateTime.parse(json['assignedAt']) : DateTime.now(),
+      driver: json['driver'] != null ? Driver.fromJson(json['driver']) : Driver(id: '', name: ''),
       load: json['load'] != null ? ExpandedLoad.fromJson(json['load']) : null,
-      routeLeg:
-          json['routeLeg'] != null ? RouteLeg.fromJson(json['routeLeg']) : null,
+      routeLeg: json['routeLeg'] != null ? RouteLeg.fromJson(json['routeLeg']) : null,
     );
   }
 }

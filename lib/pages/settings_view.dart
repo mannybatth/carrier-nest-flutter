@@ -20,13 +20,11 @@ class SettingsView extends StatelessWidget {
             children: <Widget>[
               ListTile(
                   title: const Text('Phone Number'),
-                  subtitle: Text(snapshot.data!.getString('phoneNumber') ??
-                      'Not available'),
+                  subtitle: Text(snapshot.data!.getString('phoneNumber') ?? 'Not available'),
                   onTap: () {}),
               ListTile(
                   title: const Text('Carrier Code'),
-                  subtitle: Text(snapshot.data!.getString('carrierCode') ??
-                      'Not available'),
+                  subtitle: Text(snapshot.data!.getString('carrierCode') ?? 'Not available'),
                   onTap: () {}),
               const Divider(), // Added Divider here
               ListTile(
@@ -37,8 +35,7 @@ class SettingsView extends StatelessWidget {
                   await DioClient().clearPreferences();
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const DriverLoginPage()),
+                    MaterialPageRoute(builder: (context) => const DriverLoginPage()),
                   );
                 },
               ),

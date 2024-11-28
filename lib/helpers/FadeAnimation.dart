@@ -12,8 +12,7 @@ class FadeAnimation extends StatelessWidget {
     // Define your custom animation properties
     final tween = TweenSequence([
       TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOut)),
+        tween: Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeOut)),
         weight: 50.0,
       ),
     ]);
@@ -26,10 +25,7 @@ class FadeAnimation extends StatelessWidget {
       builder: (context, value, child) => Opacity(
         opacity: value,
         child: Transform.translate(
-          offset: Offset(
-              0,
-              (1 - value) *
-                  -30), // Adjust the translation based on the animation value
+          offset: Offset(0, (1 - value) * -30), // Adjust the translation based on the animation value
           child: child,
         ),
       ),

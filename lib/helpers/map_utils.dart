@@ -18,8 +18,7 @@ class MapUtils {
   }
 
   static void openAddress(String address) async {
-    final googleMapsWebUri =
-        Uri.https('www.google.com', '/maps/search/$address');
+    final googleMapsWebUri = Uri.https('www.google.com', '/maps/search/$address');
 
     if (Platform.isIOS) {
       final schemeUri = Uri(
@@ -39,9 +38,7 @@ class MapUtils {
 
   static void openRouteFromLoad(ExpandedLoad load) async {
     // Check if load.route is null, routeLegs is empty, or first routeLeg has fewer than two locations
-    if (load.route == null ||
-        load.route!.routeLegs.isEmpty ||
-        load.route!.routeLegs.first.locations.length < 2) {
+    if (load.route == null || load.route!.routeLegs.isEmpty || load.route!.routeLegs.first.locations.length < 2) {
       // If any of these checks fail, exit the method
       return;
     }
@@ -56,23 +53,18 @@ class MapUtils {
 
     // Extract origin
     final RouteLegLocation originLegLocation = legLocations.first;
-    final originLatitude = originLegLocation.loadStop?.latitude ??
-        originLegLocation.location?.latitude;
-    final originLongitude = originLegLocation.loadStop?.longitude ??
-        originLegLocation.location?.longitude;
+    final originLatitude = originLegLocation.loadStop?.latitude ?? originLegLocation.location?.latitude;
+    final originLongitude = originLegLocation.loadStop?.longitude ?? originLegLocation.location?.longitude;
     final origin = '$originLatitude,$originLongitude';
 
     // Extract destination
     final RouteLegLocation destinationLegLocation = legLocations.last;
-    final destinationLatitude = destinationLegLocation.loadStop?.latitude ??
-        destinationLegLocation.location?.latitude;
-    final destinationLongitude = destinationLegLocation.loadStop?.longitude ??
-        destinationLegLocation.location?.longitude;
+    final destinationLatitude = destinationLegLocation.loadStop?.latitude ?? destinationLegLocation.location?.latitude;
+    final destinationLongitude = destinationLegLocation.loadStop?.longitude ?? destinationLegLocation.location?.longitude;
     final destination = '$destinationLatitude,$destinationLongitude';
 
     // Extract waypoints, skipping the first and last locations
-    final waypoints =
-        legLocations.skip(1).take(legLocations.length - 2).map((location) {
+    final waypoints = legLocations.skip(1).take(legLocations.length - 2).map((location) {
       final lat = location.loadStop?.latitude ?? location.location?.latitude;
       final long = location.loadStop?.longitude ?? location.location?.longitude;
       return '$lat,$long';
@@ -92,8 +84,7 @@ class MapUtils {
       'travelmode': 'driving',
     };
 
-    final googleMapsWebUri =
-        Uri.https('www.google.com', '/maps/dir/', searchParams);
+    final googleMapsWebUri = Uri.https('www.google.com', '/maps/dir/', searchParams);
 
     // Handle iOS-specific Google Maps URL scheme
     if (Platform.isIOS) {

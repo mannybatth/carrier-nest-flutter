@@ -99,17 +99,13 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
         // Redirect to the home page
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  const MyHomePage()), // Assuming HomePage() is the home page widget
+          MaterialPageRoute(builder: (context) => const MyHomePage()), // Assuming HomePage() is the home page widget
         );
       } else {
         // Show snackbar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: skipPin
-                ? const Text('Login failed')
-                : const Text('Incorrect PIN'),
+            content: skipPin ? const Text('Login failed') : const Text('Incorrect PIN'),
           ),
         );
       }
@@ -140,10 +136,8 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
   Widget _buildTruckIcon() {
     return Column(
       children: [
-        Image.asset('assets/images/logo_truck_100.png',
-            width: 100, height: 100), // Truck image
-        const SizedBox(
-            height: 32), // Add some space between icon and text fields
+        Image.asset('assets/images/logo_truck_100.png', width: 100, height: 100), // Truck image
+        const SizedBox(height: 32), // Add some space between icon and text fields
       ],
     );
   }
@@ -159,11 +153,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
           _buildTextField(_carrierCodeController, 'Carrier Code'),
           const SizedBox(height: 16),
           _buildButton(
-              _requestPin,
-              'Login',
-              _isRequestPinLoading,
-              _phoneNumberController.text.isEmpty ||
-                  _carrierCodeController.text.isEmpty)
+              _requestPin, 'Login', _isRequestPinLoading, _phoneNumberController.text.isEmpty || _carrierCodeController.text.isEmpty)
         ],
       ),
     );
@@ -175,8 +165,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
         _buildTruckIcon(),
         _buildTextField(_pinController, 'PIN', focusNode: _pinFocusNode),
         const SizedBox(height: 16),
-        _buildButton(_verifyPin, 'Verify PIN', _isVerifyPinLoading,
-            _pinController.text.isEmpty),
+        _buildButton(_verifyPin, 'Verify PIN', _isVerifyPinLoading, _pinController.text.isEmpty),
         const SizedBox(height: 24),
         _buildBackToLoginButton(),
       ],
@@ -199,8 +188,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller, String label,
-      {FocusNode? focusNode}) {
+  Widget _buildTextField(TextEditingController controller, String label, {FocusNode? focusNode}) {
     return TextField(
       controller: controller,
       focusNode: focusNode,
@@ -215,19 +203,14 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
   }
 
   // Modify _buildButton to handle loading state
-  Widget _buildButton(VoidCallback onPressed, String buttonText, bool isLoading,
-      bool isFieldEmpty) {
+  Widget _buildButton(VoidCallback onPressed, String buttonText, bool isLoading, bool isFieldEmpty) {
     // Determine if the button should be enabled based on the text field and loading state
     bool isButtonEnabled = !isFieldEmpty && !isLoading;
 
     return Opacity(
-      opacity: isButtonEnabled
-          ? 1.0
-          : 0.5, // Change opacity based on whether button is enabled
+      opacity: isButtonEnabled ? 1.0 : 0.5, // Change opacity based on whether button is enabled
       child: InkWell(
-        onTap: isButtonEnabled
-            ? onPressed
-            : null, // Disable button tap when button is not enabled
+        onTap: isButtonEnabled ? onPressed : null, // Disable button tap when button is not enabled
         child: Container(
           height: 50,
           decoration: BoxDecoration(
@@ -241,9 +224,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
           ),
           child: Center(
             child: isLoading
-                ? const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white)) // Show spinner when loading
+                ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)) // Show spinner when loading
                 : Text(
                     buttonText,
                     style: const TextStyle(

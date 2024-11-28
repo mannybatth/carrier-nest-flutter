@@ -21,8 +21,7 @@ enum MenuOptions { notInProgress, notDelivered }
 class AssignmentDetailsPage extends StatefulWidget {
   final String assignmentId;
 
-  const AssignmentDetailsPage({Key? key, required this.assignmentId})
-      : super(key: key);
+  const AssignmentDetailsPage({Key? key, required this.assignmentId}) : super(key: key);
 
   @override
   _AssignmentDetailsPageState createState() => _AssignmentDetailsPageState();
@@ -56,8 +55,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
 
   Future<void> _fetchAssignmentDetails() async {
     try {
-      DriverAssignment assignment = await Assignments.getAssignmentById(
-          assignmentId: widget.assignmentId);
+      DriverAssignment assignment = await Assignments.getAssignmentById(assignmentId: widget.assignmentId);
       ExpandedLoad load = assignment.load!;
       RouteLeg routeLeg = assignment.routeLeg!;
 
@@ -106,20 +104,14 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       });
       final longitude = locationData?.longitude;
       final latitude = locationData?.latitude;
-      await Loads.addLoadDocumentToLoad(_load!.id, simpleDoc,
-          driverId: _driverId,
-          isPod: true,
-          longitude: longitude,
-          latitude: latitude);
+      await Loads.addLoadDocumentToLoad(_load!.id, simpleDoc, driverId: _driverId, isPod: true, longitude: longitude, latitude: latitude);
 
       await _fetchAssignmentDetails();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document uploaded successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document uploaded successfully')));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Error uploading document: Upload response invalid'),
-          backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Error uploading document: Upload response invalid'), backgroundColor: Colors.red));
     }
 
     setState(() {
@@ -166,12 +158,10 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         'isPod': true,
       });
       await _fetchAssignmentDetails();
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Document deleted successfully')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document deleted successfully')));
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error deleting document: ${e.toString()}'),
-          backgroundColor: Colors.red));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error deleting document: ${e.toString()}'), backgroundColor: Colors.red));
     }
     setState(() {
       _isDeletingDocument = false;
@@ -184,18 +174,15 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text('Confirm Delete'),
-              content:
-                  const Text('Are you sure you want to delete this document?'),
+              content: const Text('Are you sure you want to delete this document?'),
               actions: <Widget>[
                 TextButton(
                   child: const Text('Cancel'),
-                  onPressed: () => Navigator.of(context)
-                      .pop(false), // Dismisses the dialog and returns false
+                  onPressed: () => Navigator.of(context).pop(false), // Dismisses the dialog and returns false
                 ),
                 TextButton(
                   child: const Text('Delete'),
-                  onPressed: () => Navigator.of(context)
-                      .pop(true), // Dismisses the dialog and returns true
+                  onPressed: () => Navigator.of(context).pop(true), // Dismisses the dialog and returns true
                 ),
               ],
             );
@@ -243,8 +230,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
 
       await _fetchAssignmentDetails();
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Error updating status: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating status: $e')));
     }
     setState(() {
       _isStatusChangeLoading = false;
@@ -282,9 +268,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLoading == false && _errorMessage == null
-            ? _load!.customer.name
-            : ''),
+        title: Text(_isLoading == false && _errorMessage == null ? _load!.customer.name : ''),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -312,18 +296,14 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(
-              vertical: 8.0), // Add vertical padding here
+          padding: const EdgeInsets.symmetric(vertical: 8.0), // Add vertical padding here
           child: Column(
             children: _generateDocumentListItems(),
           ),
         ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
         _infoTile(label: 'Ref Num', value: _load!.refNum),
-        _infoTile(
-            label: 'Scheduled For',
-            value:
-                '${_formatDate(_routeLeg!.scheduledDate!)} at ${_routeLeg!.scheduledTime}'),
+        _infoTile(label: 'Scheduled For', value: '${_formatDate(_routeLeg!.scheduledDate!)} at ${_routeLeg!.scheduledTime}'),
 
         // Displaying the first route leg locations
         if (_routeLeg != null)
@@ -334,21 +314,15 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
               children: [
                 _infoTile(
                     label: 'Stop #${index + 1}',
-                    value: _formatAddress(
-                        stop: stopLocation.loadStop,
-                        location: stopLocation.location),
+                    value: _formatAddress(stop: stopLocation.loadStop, location: stopLocation.location),
                     tailingValue: (stopLocation.loadStop != null)
                         ? "${_formatDate(stopLocation.loadStop!.date)}\n${stopLocation.loadStop?.time}"
                         : "",
                     onTap: () {
-                      _showAddressOptionsDialog(_formatAddress(
-                          stop: stopLocation.loadStop,
-                          location: stopLocation.location,
-                          includeName: false));
+                      _showAddressOptionsDialog(
+                          _formatAddress(stop: stopLocation.loadStop, location: stopLocation.location, includeName: false));
                     }),
-                if (stopLocation.loadStop != null)
-                  _expandableAdditionalInfoTile(
-                      'Additional Info', stopLocation.loadStop!),
+                if (stopLocation.loadStop != null) _expandableAdditionalInfoTile('Additional Info', stopLocation.loadStop!),
                 Divider(thickness: 1, color: Colors.grey[300]),
               ],
             );
@@ -356,14 +330,9 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         _buildDriverNames(_routeLeg!.driverAssignments),
         _infoTile(
             label: 'Route Distance',
-            value: _routeLeg?.routeLegDistance != null
-                ? '${metersToMiles(_routeLeg!.routeLegDistance).toStringAsFixed(0)} miles'
-                : '0'),
+            value: _routeLeg?.routeLegDistance != null ? '${metersToMiles(_routeLeg!.routeLegDistance).toStringAsFixed(0)} miles' : '0'),
         _infoTile(
-            label: 'Route Duration',
-            value: _routeLeg?.routeLegDuration != null
-                ? secondsToReadable(_routeLeg!.routeLegDuration)
-                : '0'),
+            label: 'Route Duration', value: _routeLeg?.routeLegDuration != null ? secondsToReadable(_routeLeg!.routeLegDuration) : '0'),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: _buildDirectionsButton(),
@@ -381,16 +350,13 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     }
 
     // Check the type of the LoadStop and set the label accordingly
-    String pickUpLabel =
-        stop.type == LoadStopType.RECEIVER ? "Del #'s" : "PU #'s";
+    String pickUpLabel = stop.type == LoadStopType.RECEIVER ? "Del #'s" : "PU #'s";
     if (stop.pickUpNumbers!.isNotEmpty) {
-      additionalDetails
-          .add({"label": pickUpLabel, "value": stop.pickUpNumbers!});
+      additionalDetails.add({"label": pickUpLabel, "value": stop.pickUpNumbers!});
     }
 
     if (stop.referenceNumbers!.isNotEmpty) {
-      additionalDetails
-          .add({"label": "Ref #'s", "value": stop.referenceNumbers!});
+      additionalDetails.add({"label": "Ref #'s", "value": stop.referenceNumbers!});
     }
 
     if (additionalDetails.isNotEmpty) {
@@ -399,9 +365,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           dividerColor: Colors.transparent, // Set divider color to transparent
         ),
         child: ExpansionTile(
-          title: Text(label,
-              style:
-                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
           children: additionalDetails.map((detail) {
             return _customListTile(detail, () {
               _showDetailOptionsDialog(detail['value']!);
@@ -426,14 +390,12 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                 leading: const Icon(Icons.copy),
                 title: const Text('Copy to Clipboard'),
                 onTap: () {
-                  Clipboard.setData(
-                      ClipboardData(text: detail)); // Copy to clipboard
+                  Clipboard.setData(ClipboardData(text: detail)); // Copy to clipboard
                   Navigator.of(context).pop(); // Close the modal
                   const snackBar = SnackBar(
                     content: Text('Copied to Clipboard'),
                   );
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(snackBar); // Show confirmation
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar); // Show confirmation
                 },
               ),
               // Add more options if needed
@@ -478,8 +440,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     );
   }
 
-  String _formatAddress(
-      {LoadStop? stop, Location? location, bool includeName = true}) {
+  String _formatAddress({LoadStop? stop, Location? location, bool includeName = true}) {
     if (stop != null) {
       return "${includeName ? '${stop.name}\n' : ''}${stop.street}\n${stop.city}, ${stop.state} ${stop.zip}";
     } else if (location != null) {
@@ -501,14 +462,12 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                 leading: const Icon(Icons.copy),
                 title: const Text('Copy Address'),
                 onTap: () {
-                  Clipboard.setData(
-                      ClipboardData(text: address)); // Copy to clipboard
+                  Clipboard.setData(ClipboardData(text: address)); // Copy to clipboard
                   Navigator.of(context).pop(); // Close the modal
                   const snackBar = SnackBar(
                     content: Text('Copied to Clipboard'),
                   );
-                  ScaffoldMessenger.of(context)
-                      .showSnackBar(snackBar); // Show confirmation
+                  ScaffoldMessenger.of(context).showSnackBar(snackBar); // Show confirmation
                 },
               ),
               ListTile(
@@ -527,26 +486,17 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   }
 
   // Update _infoTile method
-  Widget _infoTile(
-      {required String label,
-      required String value,
-      String? tailingValue,
-      VoidCallback? onTap}) {
+  Widget _infoTile({required String label, required String value, String? tailingValue, VoidCallback? onTap}) {
     return ListTile(
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
       subtitle: Text(value),
-      trailing: tailingValue != null
-          ? Text(tailingValue,
-              textAlign: TextAlign.end, style: const TextStyle(fontSize: 14))
-          : null,
+      trailing: tailingValue != null ? Text(tailingValue, textAlign: TextAlign.end, style: const TextStyle(fontSize: 14)) : null,
       onTap: onTap ?? () {},
     );
   }
 
   Widget _buildDriverNames(List<DriverAssignment> driverAssignments) {
-    String driverNames = driverAssignments
-        .map((assignment) => assignment.driver.name)
-        .join(', ');
+    String driverNames = driverAssignments.map((assignment) => assignment.driver.name).join(', ');
 
     return _infoTile(
       label: 'Assigned Drivers',
@@ -561,8 +511,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       bool isOnly = _load!.podDocuments.length == 1;
 
       BorderSide borderSide = BorderSide(color: Colors.grey[300]!, width: 1);
-      BorderSide zeroBorderSide =
-          BorderSide(color: Colors.grey[300]!, width: 0);
+      BorderSide zeroBorderSide = BorderSide(color: Colors.grey[300]!, width: 0);
 
       BorderRadiusGeometry borderRadius;
       if (isOnly) {
@@ -605,8 +554,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                 ? null
                 : () async {
                     // Show confirmation dialog before deleting
-                    bool confirmDelete =
-                        await showDeleteConfirmationDialog(context);
+                    bool confirmDelete = await showDeleteConfirmationDialog(context);
                     if (confirmDelete) {
                       deleteLoadDocument(_load!.podDocuments[index].id!);
                     }
@@ -620,8 +568,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                   try {
                     await launchUrl(Uri.parse(url));
                   } catch (e) {
-                    final snackBar =
-                        SnackBar(content: Text('Failed to open document: $e'));
+                    final snackBar = SnackBar(content: Text('Failed to open document: $e'));
                     ScaffoldMessenger.of(context).showSnackBar(snackBar);
                   }
                 },
@@ -670,8 +617,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                   height: 24,
                   child: CircularProgressIndicator(strokeWidth: 2.0),
                 )
-              : const Text(
-                  'Complete Work'), // Empty text widget to create space
+              : const Text('Complete Work'), // Empty text widget to create space
         ),
       );
     }
@@ -681,9 +627,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   Widget _buildFilePickerButton() {
     UILoadStatus currentStatus = loadStatus(_load!);
     RouteLegStatus status = _routeLeg!.status;
-    if (status == RouteLegStatus.COMPLETED &&
-        (currentStatus == UILoadStatus.inProgress ||
-            currentStatus == UILoadStatus.delivered)) {
+    if (status == RouteLegStatus.COMPLETED && (currentStatus == UILoadStatus.inProgress || currentStatus == UILoadStatus.delivered)) {
       return Expanded(
         child: ElevatedButton.icon(
           onPressed: _isStatusChangeLoading || _isUploadingPod
@@ -747,9 +691,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   Widget _buildMenuButton() {
     // UILoadStatus currentStatus = loadStatus(_load);
     RouteLegStatus status = _routeLeg!.status;
-    if (!_dropOffDatePassed &&
-        (status == RouteLegStatus.IN_PROGRESS ||
-            status == RouteLegStatus.COMPLETED)) {
+    if (!_dropOffDatePassed && (status == RouteLegStatus.IN_PROGRESS || status == RouteLegStatus.COMPLETED)) {
       return PopupMenuButton<MenuOptions>(
         onSelected: _handleMenuOption,
         itemBuilder: (BuildContext context) {

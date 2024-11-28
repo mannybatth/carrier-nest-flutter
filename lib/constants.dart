@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-const apiUrl = kReleaseMode
-    ? 'https://carriernest.com/api'
-    : 'http://192.168.86.33:3000/api';
+const apiUrl = kReleaseMode ? 'https://carriernest.com/api' : 'http://192.168.86.33:3000/api';
 
 class JSONResponse<T> {
   final T data;
@@ -29,12 +27,8 @@ class PaginationMetadata {
       : total = json['total'],
         currentOffset = json['currentOffset'],
         currentLimit = json['currentLimit'],
-        prev = json['prev'] != null
-            ? PaginationPointer.fromJson(json['prev'])
-            : null,
-        next = json['next'] != null
-            ? PaginationPointer.fromJson(json['next'])
-            : null;
+        prev = json['prev'] != null ? PaginationPointer.fromJson(json['prev']) : null,
+        next = json['next'] != null ? PaginationPointer.fromJson(json['next']) : null;
 }
 
 class PaginationPointer {
