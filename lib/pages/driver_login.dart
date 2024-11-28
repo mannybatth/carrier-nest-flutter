@@ -53,6 +53,13 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
     try {
       await _driverAuth.fetchCsrfToken();
 
+      final carrierCode = _carrierCodeController.text.toLowerCase();
+      if (carrierCode == 'demo') {
+        // Skip PIN entry for "demo" carrier code
+        _verifyPin(skipPin: true);
+        return;
+      }
+
       final response = await _driverAuth.requestPin(
         phoneNumber: _phoneNumberController.text,
         carrierCode: _carrierCodeController.text,
@@ -77,15 +84,16 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
     }
   }
 
-  Future<void> _verifyPin() async {
+  Future<void> _verifyPin({bool skipPin = false}) async {
     setState(() {
       _isVerifyPinLoading = true;
     });
     try {
-      var tokenData = await _driverAuth.verifyPin(
-          phoneNumber: _phoneNumberController.text,
-          carrierCode: _carrierCodeController.text,
-          code: _pinController.text);
+      final tokenData = await _driverAuth.verifyPin(
+        phoneNumber: _phoneNumberController.text,
+        carrierCode: _carrierCodeController.text,
+        code: skipPin ? '' : _pinController.text, // Skip PIN if demo mode
+      );
 
       if (tokenData != null) {
         // Redirect to the home page
@@ -98,8 +106,10 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
       } else {
         // Show snackbar
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Incorrect PIN'),
+          SnackBar(
+            content: skipPin
+                ? const Text('Login failed')
+                : const Text('Incorrect PIN'),
           ),
         );
       }
