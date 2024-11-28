@@ -3,6 +3,7 @@ import 'package:carrier_nest_flutter/constants.dart';
 import 'package:carrier_nest_flutter/pages/assignment_details.dart';
 import 'package:carrier_nest_flutter/pages/driver_login.dart';
 import 'package:carrier_nest_flutter/rest/assignments.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carrier_nest_flutter/models.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,17 +15,38 @@ class HistoryView extends StatefulWidget {
   _HistoryViewState createState() => _HistoryViewState();
 }
 
-class _HistoryViewState extends State<HistoryView> {
+class _HistoryViewState extends State<HistoryView> with WidgetsBindingObserver {
   Future<Map<String, dynamic>>? _assignmentsFuture;
   String? _errorMessage;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _fetchAssignments();
   }
 
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _fetchAssignments();
+    }
+  }
+
   Future<void> _fetchAssignments() async {
+    setState(() {
+      _assignmentsFuture = _getDriverAssignments();
+    });
+  }
+
+  /// Helper function to fetch assignments and handle errors
+  Future<Map<String, dynamic>> _getDriverAssignments() async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? jwtToken = prefs.getString('jwtToken');
@@ -33,11 +55,12 @@ class _HistoryViewState extends State<HistoryView> {
           context,
           MaterialPageRoute(builder: (context) => const DriverLoginPage()),
         );
-        return;
+        return Future.error('JWT token is missing. Redirecting to login...');
       }
+
       String? driverId = prefs.getString('driverId');
 
-      _assignmentsFuture = Assignments.getDriverAssignments(
+      final assignments = await Assignments.getDriverAssignments(
         limit: 10,
         offset: 0,
         driverId: driverId,
@@ -48,43 +71,86 @@ class _HistoryViewState extends State<HistoryView> {
         ),
       );
 
-      setState(() {});
+      return assignments;
+    } on DioException catch (dioError) {
+      final errorMessage = dioError.message ?? "An unknown error occurred.";
+      if (dioError.type == DioExceptionType.connectionTimeout ||
+          dioError.type == DioExceptionType.receiveTimeout ||
+          dioError.type == DioExceptionType.sendTimeout) {
+        return Future.error("Connection timeout. Please try again.");
+      } else if (dioError.response?.statusCode == 500) {
+        return Future.error("Server error. Please try again later.");
+      } else {
+        return Future.error(errorMessage);
+      }
     } catch (error) {
-      // Handle errors here
-      setState(() {
-        _errorMessage = "$error";
-      });
+      return Future.error("An unexpected error occurred: $error");
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _assignmentsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError || _errorMessage != null) {
-          return Center(
+    return RefreshIndicator(
+      onRefresh: _fetchAssignments,
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _assignmentsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return _buildLoadingView();
+          } else if (snapshot.hasError) {
+            _errorMessage = snapshot.error.toString();
+            return _buildErrorView();
+          } else if (snapshot.hasData && snapshot.data!['assignments'].isNotEmpty) {
+            return _buildLoadsList(snapshot.data!['assignments']);
+          } else {
+            return _buildEmptyState();
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildLoadingView() {
+    return const Center(child: CircularProgressIndicator());
+  }
+
+  Widget _buildErrorView() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: Center(
             child: Padding(
               padding: const EdgeInsets.all(8.0),
               child: Text(
-                  'Error fetching loads: ${_errorMessage ?? snapshot.error}'),
+                'Error fetching loads: ${_errorMessage ?? 'Unknown error'}',
+                textAlign: TextAlign.center,
+              ),
             ),
-          );
-        } else if (snapshot.hasData &&
-            snapshot.data!['assignments'].isNotEmpty) {
-          return _buildLoadsList(snapshot.data!['assignments']);
-        } else {
-          return const Center(
-              child: Padding(
-            padding: EdgeInsets.all(8.0),
-            child: Text(
-              'No loads completed in the last 30 days',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.8,
+          child: const Center(
+            child: Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text(
+                'No loads completed in the last 30 days',
+                textAlign: TextAlign.center,
+              ),
             ),
-          ));
-        }
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -99,8 +165,7 @@ class _HistoryViewState extends State<HistoryView> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    AssignmentDetailsPage(assignmentId: assignment.id),
+                builder: (context) => AssignmentDetailsPage(assignmentId: assignment.id),
               ),
             );
           },
