@@ -25,7 +25,8 @@ class LocationUtils {
       return null;
     }
 
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+    const LocationSettings locationSettings = LocationSettings(accuracy: LocationAccuracy.high);
+    Position position = await Geolocator.getCurrentPosition(locationSettings: locationSettings);
 
     return position;
   }
