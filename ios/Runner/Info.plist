@@ -26,6 +26,16 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow the drive to take a picture of a pod document directly from camera</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Used to get the drivers location when load is completed and status is updated</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Used to get the drivers location when load is completed and status is updated</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Used to get the drivers location when load is completed and status is updated</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Allow the driver to select a photo of a pod document from their library</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
