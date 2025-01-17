@@ -29,7 +29,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
 
     if (kDebugMode) {
       _phoneNumberController.text = '3172245337';
-      _carrierCodeController.text = 'psb150';
+      _carrierCodeController.text = 'psb920';
 
       // _phoneNumberController.text = '2065654638';
       // _carrierCodeController.text = 'deepbrosinc';
