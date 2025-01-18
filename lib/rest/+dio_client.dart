@@ -37,8 +37,7 @@ class DioClient {
 
     // Add an interceptor to handle 401 responses
     dio.interceptors.add(InterceptorsWrapper(
-      onRequest:
-          (RequestOptions options, RequestInterceptorHandler handler) async {
+      onRequest: (RequestOptions options, RequestInterceptorHandler handler) async {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String? jwtToken = prefs.getString("jwtToken");
         if (jwtToken != null) {
@@ -62,8 +61,7 @@ class DioClient {
     clearCookies().then((value) => clearPreferences()).then((value) {
       navigatorKey.currentState?.pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const DriverLoginPage()),
-        (Route<dynamic> route) =>
-            false, // This removes all the routes until it gets to the login page
+        (Route<dynamic> route) => false, // This removes all the routes until it gets to the login page
       );
     });
   }

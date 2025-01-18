@@ -21,25 +21,19 @@ class Assignments {
       if (completedOnly != null) 'completedOnly': completedOnly ? '1' : '0',
     };
 
-    final response = await DioClient().dio.get<Map<String, dynamic>>(
-        '$apiUrl/assignment/for-driver',
-        queryParameters: params);
+    final response = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/assignment/for-driver', queryParameters: params);
 
     if (response.statusCode == 200) {
-      final List<dynamic> errors =
-          response.data?['errors'] ?? []; // Assuming errors are a list
+      final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
       final List<DriverAssignment> assignments =
-          (response.data?['data']['assignments'] as List)
-              .map((item) => DriverAssignment.fromJson(item))
-              .toList();
+          (response.data?['data']['assignments'] as List).map((item) => DriverAssignment.fromJson(item)).toList();
 
-      final PaginationMetadata metadata =
-          PaginationMetadata.fromJson(response.data?['data']['metadata']);
+      final PaginationMetadata metadata = PaginationMetadata.fromJson(response.data?['data']['metadata']);
 
       return {'assignments': assignments, 'metadata': metadata};
     } else {
@@ -55,8 +49,7 @@ class Assignments {
         );
 
     if (response.statusCode == 200) {
-      final List<dynamic> errors =
-          response.data?['errors'] ?? []; // Assuming errors are a list
+      final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));
@@ -79,10 +72,7 @@ class Assignments {
     double? activityLongitude,
   }) async {
     final Map<String, dynamic> data = {
-      'routeLegStatus': routeLegStatus
-          .toString()
-          .split('.')
-          .last, // Getting the enum value as a string,
+      'routeLegStatus': routeLegStatus.toString().split('.').last, // Getting the enum value as a string,
       if (startLatitude != null) 'startLatitude': startLatitude,
       if (startLongitude != null) 'startLongitude': startLongitude,
       if (endLatitude != null) 'endLatitude': endLatitude,
@@ -97,8 +87,7 @@ class Assignments {
         );
 
     if (response.statusCode != 200) {
-      final List<dynamic> errors =
-          response.data?['errors'] ?? []; // Assuming errors are a list
+      final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));

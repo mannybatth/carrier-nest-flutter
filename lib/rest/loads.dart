@@ -9,28 +9,23 @@ class Loads {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? driverId = prefs.getString("driverId");
 
-    String expand =
-        'customer,shipper,receiver,stops,invoice,route,documents,carrier';
+    String expand = 'customer,shipper,receiver,stops,invoice,route,documents,carrier';
 
     final Map<String, String> params = {
       'expand': expand,
       if (driverId != null) 'driverId': driverId,
     };
 
-    final response = await DioClient().dio.get<Map<String, dynamic>>(
-        '$apiUrl/loads/$id',
-        queryParameters: params);
+    final response = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/loads/$id', queryParameters: params);
 
     if (response.statusCode == 200) {
-      final List<dynamic> errors =
-          response.data?['errors'] ?? []; // Assuming errors are a list
+      final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
 
       if (errors.isNotEmpty) {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final ExpandedLoad load =
-          ExpandedLoad.fromJson(response.data?['data']['load']);
+      final ExpandedLoad load = ExpandedLoad.fromJson(response.data?['data']['load']);
       return load;
     } else {
       throw Exception('Failed to load data');
@@ -45,10 +40,7 @@ class Loads {
     double? latitude,
   }) async {
     final Map<String, dynamic> body = {
-      'status': status
-          .toString()
-          .split('.')
-          .last, // Getting the enum value as a string
+      'status': status.toString().split('.').last, // Getting the enum value as a string
       if (driverId != null) 'driverId': driverId,
       if (longitude != null) 'longitude': longitude,
       if (latitude != null) 'latitude': latitude,
@@ -107,8 +99,7 @@ class Loads {
         throw Exception(errors.map((e) => e.toString()).join(', '));
       }
 
-      final LoadDocument resultLoadDocument =
-          LoadDocument.fromJson(response.data?['data']['loadDocument']);
+      final LoadDocument resultLoadDocument = LoadDocument.fromJson(response.data?['data']['loadDocument']);
       return resultLoadDocument;
     } else {
       throw Exception('Failed to add load document');
