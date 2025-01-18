@@ -59,19 +59,18 @@ class DriverAuth {
         await prefs.setString("jwtToken", jwtToken);
       }
 
-      var tokenResponse = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/auth/get-token');
+      var sessionResponse = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/auth/session');
 
-      if (tokenResponse.data != null) {
-        final tokenData = tokenResponse.data?["token"];
+      if (sessionResponse.data != null) {
+        final sessionData = sessionResponse.data?["user"];
 
-        if (tokenData != null) {
-          await prefs.setString("driverId", tokenData["driverId"]);
-          await prefs.setString("phoneNumber", tokenData["phoneNumber"]);
-          await prefs.setString("carrierId", tokenData["carrierId"]);
+        if (sessionData != null) {
+          await prefs.setString("driverId", sessionData["driverId"]);
+          await prefs.setString("phoneNumber", sessionData["phoneNumber"]);
+          await prefs.setString("carrierId", sessionData["carrierId"]);
           await prefs.setString("carrierCode", carrierCode);
-          await prefs.setInt("exp", tokenData["exp"]);
 
-          return tokenData;
+          return sessionData;
         }
       }
     } else {
@@ -82,7 +81,7 @@ class DriverAuth {
   }
 
   String _extractSessionToken(String cookieString) {
-    RegExp regExp = RegExp(r'next-auth\.session-token=([^;]+)');
+    RegExp regExp = RegExp(r'\.session-token=([^;]+)');
     var match = regExp.firstMatch(cookieString);
     return match?.group(1) ?? '';
   }
