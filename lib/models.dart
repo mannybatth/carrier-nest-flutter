@@ -63,8 +63,8 @@ class Load {
   final String receiverId;
   final double rate;
   final String? routeEncoded;
-  final double? routeDistance;
-  final double? routeDuration;
+  final double? routeDistanceMiles;
+  final double? routeDurationHours;
   final LoadStatus status;
 
   Load({
@@ -79,8 +79,8 @@ class Load {
     required this.receiverId,
     required this.rate,
     this.routeEncoded,
-    this.routeDistance,
-    this.routeDuration,
+    this.routeDistanceMiles,
+    this.routeDurationHours,
     required this.status,
   });
   Load.fromJson(Map<String, dynamic> json)
@@ -95,8 +95,8 @@ class Load {
         receiverId = json['receiverId'],
         rate = double.parse(json['rate'].toString()),
         routeEncoded = json['routeEncoded'] as String?,
-        routeDistance = json['routeDistance'] != null ? double.parse(json['routeDistance'].toString()) : null,
-        routeDuration = json['routeDuration'] != null ? double.parse(json['routeDuration'].toString()) : null,
+        routeDistanceMiles = json['routeDistanceMiles'] != null ? double.parse(json['routeDistanceMiles'].toString()) : null,
+        routeDurationHours = json['routeDurationHours'] != null ? double.parse(json['routeDurationHours'].toString()) : null,
         status = LoadStatus.values.byName(json['status']);
 }
 
@@ -265,7 +265,7 @@ class LoadDocument {
         fileUrl = json['fileUrl'],
         fileName = json['fileName'],
         fileType = json['fileType'],
-        fileSize = json['fileSize'];
+        fileSize = int.parse(json['fileSize'].toString());
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -364,8 +364,8 @@ class ExpandedLoad {
   final String shipperId;
   final String receiverId;
   final String routeEncoded;
-  final double routeDistance;
-  final double routeDuration;
+  final double routeDistanceMiles;
+  final double routeDurationHours;
   final LoadStatus status;
   final Customer customer;
   final Invoice? invoice;
@@ -389,8 +389,8 @@ class ExpandedLoad {
     required this.shipperId,
     required this.receiverId,
     required this.routeEncoded,
-    required this.routeDistance,
-    required this.routeDuration,
+    required this.routeDistanceMiles,
+    required this.routeDurationHours,
     required this.status,
     required this.customer,
     this.invoice,
@@ -414,8 +414,8 @@ class ExpandedLoad {
         shipperId = json['shipperId'],
         receiverId = json['receiverId'],
         routeEncoded = json['routeEncoded'],
-        routeDistance = json['routeDistance'] != null ? double.parse(json['routeDistance'].toString()) : 0.0,
-        routeDuration = json['routeDuration'] != null ? double.parse(json['routeDuration'].toString()) : 0.0,
+        routeDistanceMiles = json['routeDistanceMiles'] != null ? double.parse(json['routeDistanceMiles'].toString()) : 0.0,
+        routeDurationHours = json['routeDurationHours'] != null ? double.parse(json['routeDurationHours'].toString()) : 0.0,
         status = LoadStatus.values.byName(json['status']),
         customer = Customer.fromJson(json['customer']),
         invoice = json['invoice'] != null ? Invoice.fromJson(json['invoice']) : null,
@@ -456,8 +456,8 @@ class RouteLeg {
   final double? endLongitude;
   final DateTime? endedAt;
   final DateTime? createdAt;
-  final double routeLegDistance;
-  final double routeLegDuration;
+  final double distanceMiles;
+  final double durationHours;
   final String driverInstructions;
   final RouteLegStatus status;
   final List<RouteLegLocation> locations;
@@ -475,8 +475,8 @@ class RouteLeg {
       required this.endLongitude,
       required this.endedAt,
       required this.createdAt,
-      this.routeLegDistance = 0.0,
-      this.routeLegDuration = 0.0,
+      this.distanceMiles = 0.0,
+      this.durationHours = 0.0,
       required this.driverInstructions,
       required this.status,
       required this.locations,
@@ -495,8 +495,8 @@ class RouteLeg {
       endLongitude: json['endLongitude']?.toDouble(),
       endedAt: json['endedAt'] != null ? DateTime.parse(json['endedAt']) : null,
       createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
-      routeLegDistance: json['routeLegDistance'] != null ? double.parse(json['routeLegDistance'].toString()) : 0.0,
-      routeLegDuration: json['routeLegDuration'] != null ? double.parse(json['routeLegDuration'].toString()) : 0.0,
+      distanceMiles: json['distanceMiles'] != null ? double.parse(json['distanceMiles'].toString()) : 0.0,
+      durationHours: json['durationHours'] != null ? double.parse(json['durationHours'].toString()) : 0.0,
       driverInstructions: json['driverInstructions'],
       status: RouteLegStatus.values.firstWhere((e) => e.toString() == 'RouteLegStatus.${json['status']}'),
       locations: (json['locations'] as List? ?? []).map((location) => RouteLegLocation.fromJson(location)).toList(),

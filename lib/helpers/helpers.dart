@@ -13,3 +13,11 @@ String secondsToReadable(double seconds) {
 
   return "${(seconds / 60 / 60).toStringAsFixed(1)} hrs";
 }
+
+String hoursToReadable(double hours) {
+  if (hours < 1) {
+    return "${(hours * 60).toStringAsFixed(1)} min";
+  }
+
+  return "${hours.toStringAsFixed(2)} hrs";
+}

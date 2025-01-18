@@ -330,9 +330,8 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         _buildDriverNames(_routeLeg!.driverAssignments),
         _infoTile(
             label: 'Route Distance',
-            value: _routeLeg?.routeLegDistance != null ? '${metersToMiles(_routeLeg!.routeLegDistance).toStringAsFixed(0)} miles' : '0'),
-        _infoTile(
-            label: 'Route Duration', value: _routeLeg?.routeLegDuration != null ? secondsToReadable(_routeLeg!.routeLegDuration) : '0'),
+            value: _routeLeg?.distanceMiles != null ? '${_routeLeg!.distanceMiles.toStringAsFixed(2)} miles' : '0'),
+        _infoTile(label: 'Route Duration', value: _routeLeg?.durationHours != null ? hoursToReadable(_routeLeg!.durationHours) : '0'),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
           child: _buildDirectionsButton(),
@@ -537,7 +536,7 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
             left: borderSide,
             right: borderSide,
             top: borderSide,
-            bottom: isLast ? borderSide : zeroBorderSide,
+            bottom: borderSide,
           ),
           borderRadius: borderRadius,
         ),
