@@ -8,6 +8,7 @@
     "Dart-Code.dart-code"
     "Dart-Code.flutter"
     "eamodio.gitlens"
+    "streetsidesoftware.code-spell-checker"
   ];
   idx.previews = {
     previews = {
