@@ -1,5 +1,5 @@
 import 'package:carrier_nest_flutter/models.dart';
-
+/* 
 final List<Map<String, dynamic>> invoiceTermOptions = [
   {
     'value': 0,
@@ -37,3 +37,4 @@ UIInvoiceStatus invoiceStatus(Invoice invoice) {
 
   return UIInvoiceStatus.NOT_PAID;
 }
+ */
