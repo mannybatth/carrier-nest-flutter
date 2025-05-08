@@ -45,7 +45,7 @@ class Assignments {
     required String assignmentId,
   }) async {
     final response = await DioClient().dio.get<Map<String, dynamic>>(
-          '$apiUrl/assignment/$assignmentId',
+          '$apiUrl/assignments/$assignmentId',
         );
 
     if (response.statusCode == 200) {
