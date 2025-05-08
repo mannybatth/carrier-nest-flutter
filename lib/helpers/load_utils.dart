@@ -24,7 +24,7 @@ UILoadStatus loadStatusToUIStatus(LoadStatus status) {
 
 UILoadStatus loadStatus(ExpandedLoad load) {
   // Assuming invoiceStatus function and UIInvoiceStatus enum are defined elsewhere
-  if (load.invoice != null) {
+  /* if (load.invoice != null) {
     UIInvoiceStatus inStatus = invoiceStatus(load.invoice!);
     switch (inStatus) {
       case UIInvoiceStatus.NOT_PAID:
@@ -38,14 +38,16 @@ UILoadStatus loadStatus(ExpandedLoad load) {
       default:
         break;
     }
+  } */
+  if (load.invoice?.id != null) {
+    return UILoadStatus.invoiced;
   }
 
   if (load.podDocuments.isNotEmpty) {
     return UILoadStatus.podReady;
   }
 
-  DateTime dropOffDate = load.receiver.date;
-  if (load.status == LoadStatus.DELIVERED || isDate24HrInThePast(dropOffDate)) {
+  if (load.status == LoadStatus.DELIVERED) {
     return UILoadStatus.delivered;
   }
 
