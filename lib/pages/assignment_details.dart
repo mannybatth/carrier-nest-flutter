@@ -5,6 +5,7 @@ import 'package:carrier_nest_flutter/rest/assignments.dart';
 import 'package:carrier_nest_flutter/rest/pod_upload.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_doc_scanner/flutter_doc_scanner.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:carrier_nest_flutter/rest/loads.dart';
 import 'package:carrier_nest_flutter/models.dart';
@@ -56,13 +57,14 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   Future<void> _fetchAssignmentDetails() async {
     try {
       DriverAssignment assignment = await Assignments.getAssignmentById(assignmentId: widget.assignmentId);
+
       ExpandedLoad load = assignment.load!;
       RouteLeg routeLeg = assignment.routeLeg!;
 
       setState(() {
         _load = load;
         _routeLeg = routeLeg;
-        _dropOffDatePassed = isDate24HrInThePast(load.receiver.date);
+        _dropOffDatePassed = false; //isDate24HrInThePast(load.receiver.date);
         _isLoading = false;
         _errorMessage = null;
       });
@@ -117,6 +119,45 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     setState(() {
       _isUploadingPod = false;
     });
+  }
+
+  /* Future<void> _scanDocument() async {
+    //by default way they fetch pdf for android and png for iOS
+    dynamic scannedDocuments;
+    try {
+      scannedDocuments = await FlutterDocScanner().getScannedDocumentAsPdf() ?? 'Unknown platform documents';
+      print(scannedDocuments.toString());
+      await _uploadFile(scannedDocuments);
+    } on PlatformException {
+      scannedDocuments = 'Failed to get scanned documents.';
+    }
+  } */
+
+  Future<void> _scanDocument() async {
+    try {
+      final String? scannedPath = await FlutterDocScanner().getScannedDocumentAsPdf();
+
+      if (scannedPath != null) {
+        final File file = File(scannedPath);
+
+        final PlatformFile platformFile = PlatformFile(
+          name: scannedPath.split('/').last,
+          path: scannedPath,
+          size: await file.length(),
+          bytes: await file.readAsBytes(),
+        );
+
+        await _uploadFile(platformFile);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No document scanned'), backgroundColor: Colors.orange),
+        );
+      }
+    } on PlatformException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to scan document'), backgroundColor: Colors.red),
+      );
+    }
   }
 
   Future<void> _pickImage(ImageSource source) async {
@@ -264,11 +305,25 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     return DateFormat('MMM dd', 'en_US').format(date);
   }
 
+  // convert route leg status to user friendly string
+  String _formatRouteLegStatus(RouteLegStatus status) {
+    switch (status) {
+      case RouteLegStatus.ASSIGNED:
+        return 'Assigned';
+      case RouteLegStatus.IN_PROGRESS:
+        return 'In Progress';
+      case RouteLegStatus.COMPLETED:
+        return 'Completed';
+      default:
+        return 'Unknown';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isLoading == false && _errorMessage == null ? _load!.customer.name : ''),
+        title: Text(_isLoading == false && _errorMessage == null ? 'Assignment Details' : ''),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -282,28 +337,116 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
     return ListView(
       padding: const EdgeInsets.only(bottom: 64.0, top: 16.0),
       children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 8.0, left: 16.0, right: 16.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Container(
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12.0),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black12,
+                offset: Offset(0, 4),
+                blurRadius: 12.0,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              _buildBeginWorkButton(),
-              _buildCompleteWorkButton(),
-              _buildFilePickerButton(),
-              const SizedBox(width: 18),
-              _buildMenuButton(),
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 8.0,
+                ),
+                child: _buildDirectionsButton(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 0.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _buildBeginWorkButton(),
+                    _buildCompleteWorkButton(),
+                    _buildFilePickerButton(),
+                    _buildMenuButton(),
+                  ],
+                ),
+              ),
+              _load != null && _load!.podDocuments.isNotEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 16), // Add vertical padding here
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.max,
+                        children: _generateDocumentListItems(),
+                      ),
+                    )
+                  : const SizedBox.shrink(),
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0), // Add vertical padding here
-          child: Column(
-            children: _generateDocumentListItems(),
-          ),
-        ),
+
+        _routeLeg?.status == RouteLegStatus.COMPLETED
+            ? Container(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 8.0),
+                margin: const EdgeInsets.only(left: 16.0, right: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.green[500],
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: Colors.green, width: 1),
+                ),
+                child: const Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Icon(Icons.check_circle, color: Colors.white70, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Completed',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            : Container(
+                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 8.0, bottom: 8.0),
+                margin: const EdgeInsets.only(left: 16.0, right: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(8.0),
+                  border: Border.all(color: Colors.grey, width: 1),
+                ),
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Text(
+                        _routeLeg?.status != null ? _formatRouteLegStatus(_routeLeg!.status) : 'Unknown',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
         // ..._load.podDocuments.map((doc) => _documentRow(doc)),
-        _infoTile(label: 'Ref Num', value: _load!.refNum),
-        _infoTile(label: 'Scheduled For', value: '${_formatDate(_routeLeg!.scheduledDate!)} at ${_routeLeg!.scheduledTime}'),
+        _infoTile(label: 'Order#', value: _load!.refNum),
+        _infoTile(
+            label: 'Scheduled For',
+            value:
+                '${_formatDate(_routeLeg!.scheduledDate!)} at ${DateFormat("hh:mm a").format(DateFormat("HH:mm").parse(_routeLeg!.scheduledTime))} '),
+        // Write code to extract the notes from the load
+        // _load!.route.routeLegs[0].driverInstructions is the notes location
+        // _infoTile(label: 'Notes', value: _load!.route.routeLegs[0].driverInstructions),
+
+        _routeLeg?.driverInstructions != ''
+            ? _infoTile(label: 'Notes', value: _routeLeg?.driverInstructions ?? 'No notes available')
+            : Container(),
 
         // Displaying the first route leg locations
         if (_routeLeg != null)
@@ -332,9 +475,8 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
             label: 'Route Distance',
             value: _routeLeg?.distanceMiles != null ? '${_routeLeg!.distanceMiles.toStringAsFixed(2)} miles' : '0'),
         _infoTile(label: 'Route Duration', value: _routeLeg?.durationHours != null ? hoursToReadable(_routeLeg!.durationHours) : '0'),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          child: _buildDirectionsButton(),
+        const SizedBox(
+          height: 16,
         ),
         // Add more UI elements as needed
       ],
@@ -509,6 +651,8 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       bool isLast = index == _load!.podDocuments.length - 1;
       bool isOnly = _load!.podDocuments.length == 1;
 
+      bool hasInvoiceId = _load!.invoice?.id != null;
+
       BorderSide borderSide = BorderSide(color: Colors.grey[300]!, width: 1);
       BorderSide zeroBorderSide = BorderSide(color: Colors.grey[300]!, width: 0);
 
@@ -530,8 +674,10 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       }
 
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 0.0),
+        margin: const EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+        padding: const EdgeInsets.all(0),
         decoration: BoxDecoration(
+          color: Colors.grey[200],
           border: Border(
             left: borderSide,
             right: borderSide,
@@ -541,24 +687,29 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
           borderRadius: borderRadius,
         ),
         child: ListTile(
-          contentPadding: const EdgeInsets.only(left: 12.0, right: 8.0),
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 8.0, right: 2.0, top: 0.0, bottom: 0.0),
           leading: const Icon(Icons.attach_file, color: Colors.grey),
           title: Text(
             _load!.podDocuments[index].fileName,
             overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700]),
           ),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: _isDeletingDocument
-                ? null
-                : () async {
-                    // Show confirmation dialog before deleting
-                    bool confirmDelete = await showDeleteConfirmationDialog(context);
-                    if (confirmDelete) {
-                      deleteLoadDocument(_load!.podDocuments[index].id!);
-                    }
-                  },
-          ),
+          trailing: !hasInvoiceId
+              ? IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: _isDeletingDocument
+                      ? null
+                      : () async {
+                          // Show confirmation dialog before deleting
+                          bool confirmDelete = await showDeleteConfirmationDialog(context);
+                          if (confirmDelete) {
+                            deleteLoadDocument(_load!.podDocuments[index].id!);
+                          }
+                        },
+                )
+              : null,
           onTap: _isDeletingDocument
               ? null
               : () async {
@@ -578,9 +729,20 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
 
   Widget _buildDirectionsButton() {
     return ElevatedButton.icon(
+      iconAlignment: IconAlignment.start,
       onPressed: _getRouteDirections,
-      icon: const Icon(Icons.map),
-      label: const Text('Get Route Directions'),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[600],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      ),
+      icon: const Icon(Icons.map, color: Colors.white),
+      label: const Text(
+        'Get Route Directions',
+        style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
@@ -591,13 +753,23 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       return Expanded(
           child: ElevatedButton(
         onPressed: _isStatusChangeLoading ? null : _beginWork,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        ),
         child: _isStatusChangeLoading
             ? const SizedBox(
                 width: 24,
                 height: 24,
                 child: CircularProgressIndicator(strokeWidth: 2.0),
               )
-            : const Text('Begin Work'),
+            : const Text(
+                'Begin Work',
+                style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
       ));
     }
     return Container();
@@ -610,13 +782,21 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
       return Expanded(
         child: ElevatedButton(
           onPressed: _isStatusChangeLoading ? null : _completeWork,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          ),
           child: _isStatusChangeLoading
               ? const SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(strokeWidth: 2.0),
                 )
-              : const Text('Complete Work'), // Empty text widget to create space
+              : const Text('Complete Work',
+                  style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)), // Empty text widget to create space
         ),
       );
     }
@@ -626,7 +806,13 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
   Widget _buildFilePickerButton() {
     UILoadStatus currentStatus = loadStatus(_load!);
     RouteLegStatus status = _routeLeg!.status;
-    if (status == RouteLegStatus.COMPLETED && (currentStatus == UILoadStatus.inProgress || currentStatus == UILoadStatus.delivered)) {
+
+    // checi if invoice id is not null
+    bool hasInvoiceId = _load!.invoice?.id != null;
+
+    if (!hasInvoiceId &&
+        status == RouteLegStatus.COMPLETED &&
+        (currentStatus == UILoadStatus.inProgress || currentStatus == UILoadStatus.delivered || currentStatus == UILoadStatus.podReady)) {
       return Expanded(
         child: ElevatedButton.icon(
           onPressed: _isStatusChangeLoading || _isUploadingPod
@@ -636,14 +822,21 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
                 },
           icon: _isStatusChangeLoading || _isUploadingPod
               ? const SizedBox.shrink() // This will effectively hide the icon
-              : const Icon(Icons.upload_file),
+              : const Icon(Icons.upload_file, color: Colors.white),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12.0),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+          ),
           label: _isStatusChangeLoading || _isUploadingPod
               ? const SizedBox(
                   width: 24,
                   height: 24,
                   child: CircularProgressIndicator(strokeWidth: 2.0),
                 )
-              : const Text('Upload Document'),
+              : const Text('Upload Document', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
         ),
       );
     }
@@ -657,6 +850,13 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
         return SafeArea(
           child: Wrap(
             children: <Widget>[
+              ListTile(
+                  leading: const Icon(Icons.scanner),
+                  title: const Text('Scan Document'),
+                  onTap: () {
+                    _scanDocument();
+                    Navigator.of(context).pop();
+                  }),
               ListTile(
                   leading: const Icon(Icons.photo_library),
                   title: const Text('Photo Library'),
@@ -689,8 +889,20 @@ class _AssignmentDetailsPageState extends State<AssignmentDetailsPage> {
 
   Widget _buildMenuButton() {
     // UILoadStatus currentStatus = loadStatus(_load);
+    // check if invoice id is not null
+    bool hasInvoiceId = _load!.invoice?.id != null;
+    // Check if endedat is 24 hours in the past
+    bool checkedInDate24Past = isDate24HrInThePast(_routeLeg?.endedAt ?? DateTime.now());
+
+    if (hasInvoiceId || checkedInDate24Past) {
+      return Container(); // Return an empty container if the condition is not met
+    }
+
     RouteLegStatus status = _routeLeg!.status;
-    if (!_dropOffDatePassed && (status == RouteLegStatus.IN_PROGRESS || status == RouteLegStatus.COMPLETED)) {
+    if (!_dropOffDatePassed &&
+        _load != null &&
+        _load!.podDocuments.isEmpty &&
+        (status == RouteLegStatus.IN_PROGRESS || status == RouteLegStatus.COMPLETED)) {
       return PopupMenuButton<MenuOptions>(
         onSelected: _handleMenuOption,
         itemBuilder: (BuildContext context) {
