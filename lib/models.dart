@@ -307,7 +307,7 @@ class LoadActivity {
         longitude = json['longitude']?.toDouble();
 }
 
-class Invoice {
+/* class Invoice {
   final String id;
   final String? userId;
   final String? carrierId;
@@ -351,6 +351,14 @@ class Invoice {
         invoicedAt = json['invoicedAt'] != null ? DateTime.parse(json['invoicedAt']) : null, // Adjusted here
         dueDate = json['dueDate'] != null ? DateTime.parse(json['dueDate']) : null, // Adjusted here
         dueNetDays = json['dueNetDays'];
+} */
+class Invoice {
+  final String id;
+
+  Invoice({
+    required this.id,
+  });
+  Invoice.fromJson(Map<String, dynamic> json) : id = json['id'];
 }
 
 class ExpandedLoad {
