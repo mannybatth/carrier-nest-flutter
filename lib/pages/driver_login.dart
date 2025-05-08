@@ -148,7 +148,7 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
       ListView(
         children: [
           _buildTruckIcon(),
-          _buildTextField(_phoneNumberController, 'Phone Number'),
+          _buildNumberField(_phoneNumberController, 'Phone Number'),
           const SizedBox(height: 16),
           _buildTextField(_carrierCodeController, 'Carrier Code'),
           const SizedBox(height: 16),
@@ -196,6 +196,22 @@ class _DriverLoginPageState extends State<DriverLoginPage> {
         border: const OutlineInputBorder(),
         labelText: label,
       ),
+      keyboardType: TextInputType.text,
+      onChanged: (value) {
+        setState(() {}); // Triggers a rebuild whenever the text changes
+      },
+    );
+  }
+
+  Widget _buildNumberField(TextEditingController controller, String label, {FocusNode? focusNode}) {
+    return TextField(
+      controller: controller,
+      focusNode: focusNode,
+      decoration: InputDecoration(
+        border: const OutlineInputBorder(),
+        labelText: label,
+      ),
+      keyboardType: TextInputType.number,
       onChanged: (value) {
         setState(() {}); // Triggers a rebuild whenever the text changes
       },
