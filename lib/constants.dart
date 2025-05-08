@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
-const apiUrl = kReleaseMode ? 'https://carriernest.com/api' : 'https://9000-idx-carrier-nest-web-1740863210242.cluster-fnjdffmttjhy2qqdugh3yehhs2.cloudworkstations.dev/api';
+const apiUrl = kReleaseMode ? 'https://carriernest.com/api' : 'http://localhost:3000/api';
+//'https://carriernest.com/api'
+//: 'https://9000-idx-carrier-nest-web-1740863210242.cluster-fnjdffmttjhy2qqdugh3yehhs2.cloudworkstations.dev/api';
 
 class JSONResponse<T> {
   final T data;
