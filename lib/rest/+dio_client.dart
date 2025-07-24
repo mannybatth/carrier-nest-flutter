@@ -10,6 +10,7 @@ import 'package:carrier_nest_flutter/globals.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
+  static bool _isInitialized = false;
 
   factory DioClient() {
     return _instance;
@@ -18,11 +19,11 @@ class DioClient {
   late Dio dio;
   late PersistCookieJar cookieJar;
 
-  DioClient._internal() {
-    initDio();
-  }
+  DioClient._internal();
 
   Future<void> initDio() async {
+    if (_isInitialized) return;
+
     // Get a directory to store cookies
     Directory appDocDir = await getApplicationDocumentsDirectory();
     String appDocPath = appDocDir.path;
@@ -54,6 +55,15 @@ class DioClient {
         return handler.reject(error); // Continue with error handling
       },
     ));
+
+    _isInitialized = true;
+  }
+
+  Future<Dio> getDio() async {
+    if (!_isInitialized) {
+      await initDio();
+    }
+    return dio;
   }
 
   // Method to navigate to the driver login page
