@@ -29,7 +29,7 @@ class PodUpload {
       throw Exception('File path is null');
     }
 
-    Dio dio = DioClient().dio;
+    Dio dio = await DioClient().getDio();
     FormData formData = FormData.fromMap({
       'file': await MultipartFile.fromFile(file.path!),
     });
