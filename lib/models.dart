@@ -384,6 +384,7 @@ class ExpandedLoad {
   final List<LoadDocument> loadDocuments;
   final LoadDocument? rateconDocument;
   final List<LoadDocument> podDocuments;
+  final List<LoadDocument> bolDocuments;
   final Route? route;
 
   ExpandedLoad({
@@ -409,6 +410,7 @@ class ExpandedLoad {
     required this.loadDocuments,
     this.rateconDocument,
     required this.podDocuments,
+    required this.bolDocuments,
     this.route,
   });
   ExpandedLoad.fromJson(Map<String, dynamic> json)
@@ -434,6 +436,7 @@ class ExpandedLoad {
         loadDocuments = (json['loadDocuments'] as List? ?? []).map((item) => LoadDocument.fromJson(item)).toList(),
         rateconDocument = json['rateconDocument'] != null ? LoadDocument.fromJson(json['rateconDocument']) : null,
         podDocuments = (json['podDocuments'] as List? ?? []).map((item) => LoadDocument.fromJson(item)).toList(),
+        bolDocuments = (json['bolDocuments'] as List? ?? []).map((item) => LoadDocument.fromJson(item)).toList(),
         route = json['route'] != null ? Route.fromJson(json['route']) : null;
 }
 
