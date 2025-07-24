@@ -7,7 +7,8 @@ class DriverAuth {
   String? _csrfToken;
 
   Future<void> fetchCsrfToken() async {
-    var response = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/auth/csrf');
+    final dio = await DioClient().getDio();
+    var response = await dio.get<Map<String, dynamic>>('$apiUrl/auth/csrf');
     if (response.statusCode == 200) {
       final data = response.data;
       _csrfToken = data?['csrfToken'];
@@ -17,7 +18,8 @@ class DriverAuth {
   }
 
   Future<Response> requestPin({required String phoneNumber, required String carrierCode}) async {
-    var response = await DioClient().dio.post('$apiUrl/auth/callback/driver_auth',
+    final dio = await DioClient().getDio();
+    var response = await dio.post('$apiUrl/auth/callback/driver_auth',
         data: {
           "phoneNumber": phoneNumber,
           "carrierCode": carrierCode,
@@ -34,7 +36,8 @@ class DriverAuth {
   }
 
   Future<dynamic> verifyPin({required String phoneNumber, required String carrierCode, required String code}) async {
-    var response = await DioClient().dio.post('$apiUrl/auth/callback/driver_auth',
+    final dio = await DioClient().getDio();
+    var response = await dio.post('$apiUrl/auth/callback/driver_auth',
         data: {
           "phoneNumber": phoneNumber,
           "carrierCode": carrierCode,
@@ -59,7 +62,8 @@ class DriverAuth {
         await prefs.setString("jwtToken", jwtToken);
       }
 
-      var sessionResponse = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/auth/session');
+      final dio = await DioClient().getDio();
+      var sessionResponse = await dio.get<Map<String, dynamic>>('$apiUrl/auth/session');
 
       if (sessionResponse.data != null) {
         final sessionData = sessionResponse.data?["user"];
