@@ -16,7 +16,8 @@ class Loads {
       if (driverId != null) 'driverId': driverId,
     };
 
-    final response = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/loads/$id', queryParameters: params);
+    final dio = await DioClient().getDio();
+    final response = await dio.get<Map<String, dynamic>>('$apiUrl/loads/$id', queryParameters: params);
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
@@ -46,10 +47,11 @@ class Loads {
       if (latitude != null) 'latitude': latitude,
     };
 
-    final response = await DioClient().dio.patch<Map<String, dynamic>>(
-          '$apiUrl/loads/$loadId/status',
-          data: body,
-        );
+    final dio = await DioClient().getDio();
+    final response = await dio.patch<Map<String, dynamic>>(
+      '$apiUrl/loads/$loadId/status',
+      data: body,
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? [];
@@ -70,28 +72,31 @@ class Loads {
     LoadDocument loadDocument, {
     String? driverId,
     bool? isPod,
+    bool? isBol,
     double? longitude,
     double? latitude,
   }) async {
     final Map<String, dynamic> extras = {
       if (driverId != null) 'driverId': driverId,
       if (isPod != null) 'isPod': isPod,
+      if (isBol != null) 'isBol': isBol,
       if (longitude != null) 'longitude': longitude,
       if (latitude != null) 'latitude': latitude,
     };
 
-    final response = await DioClient().dio.post(
-          '$apiUrl/loads/$loadId/documents',
-          data: {
-            'loadDocument': loadDocument.toJson(),
-            ...extras,
-          },
-          options: Options(
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          ),
-        );
+    final dio = await DioClient().getDio();
+    final response = await dio.post(
+      '$apiUrl/loads/$loadId/documents',
+      data: {
+        'loadDocument': loadDocument.toJson(),
+        ...extras,
+      },
+      options: Options(
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      ),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? [];
@@ -111,10 +116,11 @@ class Loads {
     String loadDocumentId, {
     Map<String, dynamic>? query,
   }) async {
-    final response = await DioClient().dio.delete(
-          '$apiUrl/loads/$loadId/documents/$loadDocumentId',
-          queryParameters: query,
-        );
+    final dio = await DioClient().getDio();
+    final response = await dio.delete(
+      '$apiUrl/loads/$loadId/documents/$loadDocumentId',
+      queryParameters: query,
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? [];
