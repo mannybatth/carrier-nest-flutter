@@ -21,7 +21,8 @@ class Assignments {
       if (completedOnly != null) 'completedOnly': completedOnly ? '1' : '0',
     };
 
-    final response = await DioClient().dio.get<Map<String, dynamic>>('$apiUrl/assignment/for-driver', queryParameters: params);
+    final dio = await DioClient().getDio();
+    final response = await dio.get<Map<String, dynamic>>('$apiUrl/assignment/for-driver', queryParameters: params);
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
@@ -44,9 +45,10 @@ class Assignments {
   static Future<DriverAssignment> getAssignmentById({
     required String assignmentId,
   }) async {
-    final response = await DioClient().dio.get<Map<String, dynamic>>(
-          '$apiUrl/assignments/$assignmentId',
-        );
+    final dio = await DioClient().getDio();
+    final response = await dio.get<Map<String, dynamic>>(
+      '$apiUrl/assignments/$assignmentId',
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
@@ -81,10 +83,11 @@ class Assignments {
       if (activityLongitude != null) 'longitude': activityLongitude,
     };
 
-    final response = await DioClient().dio.patch<Map<String, dynamic>>(
-          '$apiUrl/route-leg/$routeLegId',
-          data: data,
-        );
+    final dio = await DioClient().getDio();
+    final response = await dio.patch<Map<String, dynamic>>(
+      '$apiUrl/route-leg/$routeLegId',
+      data: data,
+    );
 
     if (response.statusCode != 200) {
       final List<dynamic> errors = response.data?['errors'] ?? []; // Assuming errors are a list
